@@ -13,24 +13,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-module Exts
+module StatisticsExt
 
-export invsqrt
-export nanmean
+using Exts: Exts
+using StatsBase: AbstractWeights
+using StatsBase: mean
 
-using Reexport: @reexport
-
-@reexport using Base.Iterators: map as lmap
-@reexport using Base.Threads: @spawn, @threads, nthreads
-
-include("BaseExt.jl")
-
-function invsqrt(x::T) where T <: Real
-	F::Type = float(T)
-	F(big(x) |> inv |> sqrt)
+function Exts.nanmean(A::AbstractArray, w::AbstractWeights; dims = :)
+	r = mean(A, (w); dims)
+	!isnan(r) ? (r) : (@assert all(iszero, w); mean(A; dims))
 end
-
-function nanmean end
 
 end # module
 

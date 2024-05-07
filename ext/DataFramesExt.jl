@@ -13,24 +13,20 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-module Exts
+module DataFramesExt
 
-export invsqrt
-export nanmean
+using DataFrames: DataFrame
+using DelimitedFiles: readdlm, writedlm
 
-using Reexport: @reexport
-
-@reexport using Base.Iterators: map as lmap
-@reexport using Base.Threads: @spawn, @threads, nthreads
-
-include("BaseExt.jl")
-
-function invsqrt(x::T) where T <: Real
-	F::Type = float(T)
-	F(big(x) |> inv |> sqrt)
+function Base.read(s::IOStream, ::Type{DataFrame})
+	t::NTuple{2, Matrix} = readdlm(s, header = true)
+	DataFrame(t[1], vec(t[2]))
 end
 
-function nanmean end
+function Base.write(s::IOStream, x::DataFrame)
+	writedlm(s, [propertynames(x)'; Matrix(x)])
+	filesize(s)
+end
 
 end # module
 
