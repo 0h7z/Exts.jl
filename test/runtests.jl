@@ -16,15 +16,24 @@
 using Test
 
 @testset "BaseExt" begin
+	@test_throws MethodError convert(Set, 1:3)
+	@test_throws MethodError convert(Set{Int}, 1:3)
 	@test_throws MethodError log10(11, 2)
 	@test_throws MethodError repr([:a, 1]')
-	@test_throws UndefVarError invsqrt(1.0)
+	@test_throws UndefVarError getfirst
+	@test_throws UndefVarError getlast
+	@test_throws UndefVarError invsqrt
+	@test_throws UndefVarError readstr
 	using Exts
 
 	@test [:_ -1] == [:_, -1]'
 	@test [:p :q] == [:p, :q]'
 	@test ['1' '2'] == ['1', '2']'
 	@test ["x" "y"] == ["x", "y"]'
+	@test chomp(readstr(@__FILE__)) == readchomp(@__FILE__)
+	@test convert(Set{Int}, 1:3) == convert(Set, 1:3) == Set(1:3)
+	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
+	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
 	@test_nowarn log10(11, 2)
 end

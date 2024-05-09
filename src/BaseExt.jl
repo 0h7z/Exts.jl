@@ -28,6 +28,13 @@ function Base.adjoint(m::T)::AbstractMatrix{<:AbstractString} where T <: Abstrac
 	permutedims(m)
 end
 
+function Base.convert(::Type{S}, v::AbstractVector) where S <: AbstractSet
+	S(eltype(S)[v;])
+end
+function Base.convert(::Type{S}, v::AbstractVector) where S <: AbstractSet{T} where T
+	S(T[v;])
+end
+
 function Base.log10(x::T, σ::T) where T <: Real
 	# https://physics.stackexchange.com/q/95254
 	log10(x), σ / log(10)x

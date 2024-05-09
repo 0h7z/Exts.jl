@@ -15,8 +15,11 @@
 
 module Exts
 
+export getfirst
+export getlast
 export invsqrt
 export nanmean
+export readstr
 
 using Reexport: @reexport
 
@@ -24,6 +27,14 @@ using Reexport: @reexport
 @reexport using Base.Threads: @spawn, @threads, nthreads
 
 include("BaseExt.jl")
+
+getfirst(predicate::Function, A) = A[findfirst(predicate, A)]
+getfirst(predicate::Function)    = Base.Fix1(getfirst, predicate)
+
+getlast(predicate::Function, A) = A[findlast(predicate, A)]
+getlast(predicate::Function)    = Base.Fix1(getlast, predicate)
+
+readstr(x)::String = read(x, String)
 
 function invsqrt(x::T) where T <: Real
 	F::Type = float(T)
