@@ -19,13 +19,14 @@ using DataFrames: DataFrame
 using DelimitedFiles: readdlm, writedlm
 
 function Base.read(s::IOStream, ::Type{DataFrame})
-	t::NTuple{2, Matrix} = readdlm(s, header = true)
+	t::NTuple{2, Matrix} = readdlm(s, header = true, comments = true)
 	DataFrame(t[1], vec(t[2]))
 end
 
 function Base.write(s::IOStream, x::DataFrame)
+	pos₀ = position(s)
 	writedlm(s, [propertynames(x)'; Matrix(x)])
-	filesize(s)
+	position(s) - pos₀
 end
 
 end # module

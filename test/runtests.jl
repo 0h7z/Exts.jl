@@ -40,10 +40,12 @@ end
 
 @testset "DataFramesExt" begin
 	using DataFrames: DataFrame
-	df  = DataFrame(rand(Int16, (8, 2)), :auto)
+	df  = DataFrame(rand(Int16, (8, 2)), [:x, :y])
 	tmp = tempname()
-	@test_nowarn write(tmp, df)
-	@test read(tmp, DataFrame) == df
+	using CSV: CSV
+	@test 36 ≤ write(tmp, df) == filesize(tmp)
+	@test df == read(tmp, DataFrame)
+	@test df == CSV.read(tmp, DataFrame)
 end
 
 @testset "StatisticsExt" begin
