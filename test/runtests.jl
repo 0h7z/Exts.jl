@@ -45,6 +45,7 @@ end
 	using CSV: CSV
 	@test 36 ≤ write(tmp, df) == filesize(tmp)
 	@test df == read(tmp, DataFrame)
+	@test df == read(tmp, DataFrame, [:x, :y], skipstart = 1)
 	@test df == CSV.read(tmp, DataFrame)
 end
 

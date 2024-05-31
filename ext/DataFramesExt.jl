@@ -18,14 +18,61 @@ module DataFramesExt
 using DataFrames: DataFrame
 using DelimitedFiles: readdlm, writedlm
 
-function Base.read(s::IOStream, ::Type{DataFrame})
-	t::NTuple{2, Matrix} = readdlm(s, header = true, comments = true)
-	DataFrame(t[1], vec(t[2]))
+const Maybe{T} = Union{Nothing, T}
+
+"""
+	read(f::AbstractString, DataFrame, colnames = nothing;
+		quotes = true, comments = true, comment_char = '#') -> DataFrame
+	read(s::IOStream, DataFrame, colnames = nothing;
+		quotes = true, comments = true, comment_char = '#') -> DataFrame
+
+Read a DataFrame from the given I/O stream or file where each line gives one
+row.
+
+If `colnames` is not provided (or, is `nothing`), the first row of data will
+be read as header. If `colnames` is the symbol `:auto`, the column names will
+be `x1`, `x2`, and so on. Otherwise, `colnames` must be a vector of symbols
+or strings to specify column names.
+
+If `quotes` is `true`, columns enclosed within double-quote (") characters
+are allowed to contain new lines and column delimiters. Double-quote
+characters within a quoted field must be escaped with another double-quote.
+
+If `comments` is `true`, lines beginning with `comment_char` and text
+following `comment_char` in any line are ignored.
+"""
+function Base.read(f::AbstractString, ::Type{DataFrame}, xs...; kw...)
+	open(s -> read(s, DataFrame, xs...; kw...), convert(String, f)::String)
+end
+function Base.read(s::IOStream, ::Type{DataFrame},
+	colnames::Maybe{Union{Symbol, AbstractVector}} = nothing, xs...; quotes::Bool = true,
+	comments::Bool = true, comment_char::AbstractChar = '#', kw...)
+	cols, colnames = if isnothing(colnames)
+		t = readdlm(s, xs...; quotes, comments, comment_char, kw..., header = true)::NTuple{2, Matrix}
+		t[1], vec(t[2])
+	else
+		t = readdlm(s, xs...; quotes, comments, comment_char, kw..., header = false)::Matrix
+		t, colnames
+	end
+	DataFrame(cols, colnames)
 end
 
-function Base.write(s::IOStream, x::DataFrame)
+"""
+	write(f::AbstractString, x::DataFrame; delim = '\\t', header = true) -> Int64
+	write(s::IOStream, x::DataFrame; delim = '\\t', header = true)       -> Int64
+
+Write a DataFrame as text to the given I/O stream or file, using the given
+delimiter `delim` (which defaults to tab, but can be anything printable,
+typically a character or string).
+
+Return the number of bytes written into the stream or file.
+"""
+function Base.write(f::AbstractString, x::DataFrame; kw...)
+	open(s -> write(s, x; kw...), convert(String, f)::String, "w")
+end
+function Base.write(s::IOStream, x::DataFrame; delim = '\t', header::Bool = true, kw...)
 	pos₀ = position(s)
-	writedlm(s, [propertynames(x)'; Matrix(x)])
+	writedlm(s, header ? [propertynames(x)'; Matrix(x)] : Matrix(x), delim; kw...)
 	position(s) - pos₀
 end
 

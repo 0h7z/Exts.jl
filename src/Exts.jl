@@ -23,8 +23,11 @@ export readstr
 
 using Reexport: @reexport
 
-@reexport using Base.Iterators: map as lmap
-@reexport using Base.Threads: @spawn, @threads, nthreads
+@reexport begin
+#! format: noindent
+using Base.Iterators: map as lmap
+using Base.Threads: @spawn, @threads, nthreads
+end
 
 include("BaseExt.jl")
 
@@ -41,6 +44,7 @@ function invsqrt(x::T) where T <: Real
 	F(big(x) |> inv |> sqrt)
 end
 
+# StatisticsExt
 function nanmean end
 
 end # module
