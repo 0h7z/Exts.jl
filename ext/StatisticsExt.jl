@@ -19,7 +19,16 @@ using Exts: Exts
 using StatsBase: AbstractWeights
 using StatsBase: mean
 
-function Exts.nanmean(A::AbstractArray, w::AbstractWeights; dims = :)
+"""
+	nanmean(A::AbstractArray, w::AbstractWeights; dims = :)
+
+Compute the weighted mean of array `A` with weight vector `w`, and fallback
+to the unweighted mean if `w` is all zero(s) (instead of returning `NaN`). If
+`dims` (of type `Int`) is provided, compute the mean along dimension `dims`.
+
+See also [`mean(::AbstractArray, ::AbstractWeights)`](@ref).
+"""
+function Exts.nanmean(A::AbstractArray, w::AbstractWeights; dims::Union{Colon, Int} = :)
 	r = mean(A, (w); dims)
 	!isnan(r) ? (r) : (@assert all(iszero, w); mean(A; dims))
 end

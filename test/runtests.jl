@@ -13,7 +13,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+using InteractiveUtils: subtypes
 using Test
+
+@testset "Core" begin
+	local v = Type[Real]
+	map(_ -> unique!(append!(v, mapreduce(subtypes, vcat, v))), 1:3)
+
+	@test 24 <= length(v)
+	@test all(@. float(v) <: AbstractFloat)
+end
 
 @testset "BaseExt" begin
 	@test_throws MethodError convert(Set, 1:3)

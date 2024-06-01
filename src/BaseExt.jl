@@ -15,17 +15,17 @@
 
 module BaseExt
 
-function Base.adjoint(m::T)::AbstractMatrix{Any} where T <: AbstractVecOrMat{Any}
-	permutedims(m)
+function Base.adjoint(m::T) where T <: AbstractVecOrMat{Any}
+	permutedims(m)::AbstractMatrix{Any}
 end
-function Base.adjoint(m::T)::AbstractMatrix{<:Symbol} where T <: AbstractVecOrMat{<:Symbol}
-	permutedims(m)
+function Base.adjoint(m::T) where T <: AbstractVecOrMat{<:Symbol}
+	permutedims(m)::AbstractMatrix{<:Symbol}
 end
-function Base.adjoint(m::T)::AbstractMatrix{<:AbstractChar} where T <: AbstractVecOrMat{<:AbstractChar}
-	permutedims(m)
+function Base.adjoint(m::T) where T <: AbstractVecOrMat{<:AbstractChar}
+	permutedims(m)::AbstractMatrix{<:AbstractChar}
 end
-function Base.adjoint(m::T)::AbstractMatrix{<:AbstractString} where T <: AbstractVecOrMat{<:AbstractString}
-	permutedims(m)
+function Base.adjoint(m::T) where T <: AbstractVecOrMat{<:AbstractString}
+	permutedims(m)::AbstractMatrix{<:AbstractString}
 end
 
 function Base.convert(::Type{S}, v::AbstractVector) where S <: AbstractSet
@@ -35,6 +35,9 @@ function Base.convert(::Type{S}, v::AbstractVector) where S <: AbstractSet{T} wh
 	S(T[v;])
 end
 
+"""
+	log10(x::T, σ::T) where T <: Real -> NTuple{2, AbstractFloat}
+"""
 function Base.log10(x::T, σ::T) where T <: Real
 	# https://physics.stackexchange.com/q/95254
 	log10(x), σ / log(10)x
