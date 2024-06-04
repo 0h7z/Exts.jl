@@ -39,6 +39,7 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
         with:
           ignore-no-cache: true
+          localregistry: https://github.com/0h7z/0hjl.git
       - uses: julia-actions/julia-runtest@v1
       - uses: heptazhou/julia-codecov@v1
         with:

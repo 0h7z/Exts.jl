@@ -16,6 +16,19 @@
 using InteractiveUtils: subtypes
 using Test
 
+@testset "Pkg" begin
+	using Pkg: Pkg, PlatformEngines
+	@test getfield.(Pkg.Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
+	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z()))
+	# https://github.com/ip7z/7zip/blob/main/CPP/7zip/UI/Console/Main.cpp
+	# https://github.com/mcmilk/7-Zip/blob/master/CPP/7zip/UI/Console/Main.cpp
+	# https://github.com/p7zip-project/p7zip/blob/master/CPP/7zip/UI/Console/Main.cpp
+
+	@test PlatformEngines.p7zip_jll.is_available()
+	@info PlatformEngines.p7zip_jll.p7zip_path
+	@info PlatformEngines.find7z()
+end
+
 @testset "Core" begin
 	local v = Type[Real]
 	map(_ -> unique!(append!(v, mapreduce(subtypes, vcat, v))), 1:3)
@@ -56,6 +69,31 @@ end
 	@test df == read(tmp, DataFrame)
 	@test df == read(tmp, DataFrame, [:x, :y], skipstart = 1)
 	@test df == CSV.read(tmp, DataFrame)
+end
+
+@testset "FITSIOExt" begin
+	using FITSIO: FITSIO, CFITSIO, FITS
+	@test ccall((:fits_is_reentrant, CFITSIO.libcfitsio), Bool, ())
+	# https://heasarc.gsfc.nasa.gov/fitsio/c/c_user/node15.html
+
+	local A_Nothing = Array{Nothing, 3}(undef, Tuple(rand(0:9, 3)))
+	local FITSIOExt = Base.get_extension(Exts, :FITSIOExt)
+	@test FITSIOExt.ensure_vector(A_Nothing) isa
+		  AbstractVector{<:AbstractMatrix{Nothing}}
+
+	using HTTP: HTTP
+	local tmp = HTTP.download(
+		"https://data.sdss.org/sas/dr18/spectro/sdss/redux/" *
+		"v5_13_2/spectra/lite/3650/spec-3650-55244-0001.fits",
+		update_period = Inf,
+	)
+	FITS(tmp) do f
+		@test read(f["SPALL"], DataFrame) isa DataFrame
+	end
+	FITS(tmp, "r+") do f
+		@test_throws ArgumentError read(f["SPALL"], DataFrame)
+	end
+	rm(tmp, force = true)
 end
 
 @testset "StatisticsExt" begin
