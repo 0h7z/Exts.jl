@@ -87,12 +87,10 @@ end
 		"v5_13_2/spectra/lite/3650/spec-3650-55244-0001.fits",
 		update_period = Inf,
 	)
-	FITS(tmp) do f
-		@test read(f["SPALL"], DataFrame) isa DataFrame
-	end
-	FITS(tmp, "r+") do f
-		@test_throws ArgumentError read(f["SPALL"], DataFrame)
-	end
+	FITS(f -> @test_throws(ArgumentError,
+			read(f["SPALL"], DataFrame)), tmp, "r+")
+	FITS(f -> @test_nowarn(
+			read(f["SPALL"], DataFrame)), tmp, "r")
 	rm(tmp, force = true)
 end
 

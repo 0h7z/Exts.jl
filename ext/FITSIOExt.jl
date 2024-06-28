@@ -37,16 +37,5 @@ function Base.read(t::EitherTableHDU, ::Type{DataFrame},
 	DataFrame(map(fetch, cols), colnames)
 end
 
-# https://github.com/JuliaAstro/FITSIO.jl/pull/193
-@static if !hasmethod(FITSIO.fits_tform_char, (Type{UInt64},))
-	FITSIO.fits_tform_char(::Type{UInt64}) = 'W'
-end
-@static if !haskey(FITSIO.CFITSIO_COLTYPE, 080)
-	function __init__()
-		FITSIO.CFITSIO_COLTYPE[080] = UInt64
-		nothing
-	end
-end
-
 end # module
 

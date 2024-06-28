@@ -1,7 +1,7 @@
 name = "Exts"
 uuid = "0b12d779-4123-4875-9d6c-e33c2e29e2c9"
 authors = ["Heptazhou <zhou at 0h7z dot com>"]
-version = "0.1.5"
+version = "0.1.6"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -21,5 +21,5 @@ StatisticsExt = "StatsBase"
 
 [compat]
 CFITSIO = "≥ 1.4.2"
-FITSIO = "≥ 0.16.6"
+FITSIO = "≥ 0.17.2"
 julia = "≥ 1.9"
