@@ -25,9 +25,14 @@ jobs:
           - ubuntu-latest
           - macos-latest
         julia-version:
-          - "1.9"
+          - "min"
+          - "lts"
           - "1"
+          - "pre"
           - "nightly"
+        exclude:
+          - os: macos-latest
+            julia-version: "min"
     steps:
       - uses: actions/checkout@v4
         with:

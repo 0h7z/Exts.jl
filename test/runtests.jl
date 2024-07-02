@@ -2,8 +2,7 @@
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# published by the Free Software Foundation, version 3.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -45,6 +44,7 @@ end
 	@test_throws UndefVarError getfirst
 	@test_throws UndefVarError getlast
 	@test_throws UndefVarError invsqrt
+	@test_throws UndefVarError Maybe
 	@test_throws UndefVarError readstr
 	using Exts
 
@@ -57,6 +57,8 @@ end
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
 	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
+	@test Maybe{Int} == Maybe(Int) == Maybe(Int, Int)
+	@test Maybe{Nothing} == Maybe(Nothing) == Nothing
 	@test_nowarn log10(11, 2)
 end
 

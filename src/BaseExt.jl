@@ -2,8 +2,7 @@
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
-# published by the Free Software Foundation, either version 3 of the
-# License, or (at your option) any later version.
+# published by the Free Software Foundation, version 3.
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,6 +36,8 @@ end
 
 """
 	log10(x::T, σ::T) where T <: Real -> NTuple{2, AbstractFloat}
+
+Compute the logarithm of `x ± σ` to base 10.
 """
 function Base.log10(x::T, σ::T) where T <: Real
 	# https://physics.stackexchange.com/q/95254
