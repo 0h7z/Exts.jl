@@ -26,6 +26,7 @@ jobs:
           - macos-latest
         julia-version:
           - "1.9"
+          - "1.10"
           - "1"
           - "nightly"
     steps:
