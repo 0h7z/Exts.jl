@@ -14,6 +14,8 @@
 
 module Exts
 
+export Maybe
+
 export getfirst
 export getlast
 export invsqrt
@@ -27,6 +29,10 @@ using Reexport: @reexport
 using Base.Iterators: map as lmap
 using Base.Threads: @spawn, @threads, nthreads
 end
+
+const Maybe{T} = Union{Nothing, T}
+
+const Maybe(T::Type...) = Maybe{Union{T...}}
 
 include("BaseExt.jl")
 

@@ -44,6 +44,7 @@ end
 	@test_throws UndefVarError getfirst
 	@test_throws UndefVarError getlast
 	@test_throws UndefVarError invsqrt
+	@test_throws UndefVarError Maybe
 	@test_throws UndefVarError readstr
 	using Exts
 
@@ -56,6 +57,7 @@ end
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
 	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
+	@test Maybe{Int} == Maybe(Int) == Maybe(Int, Int)
 	@test_nowarn log10(11, 2)
 end
 

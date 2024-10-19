@@ -16,8 +16,7 @@ module DataFramesExt
 
 using DataFrames: DataFrame
 using DelimitedFiles: readdlm, writedlm
-
-const Maybe{T} = Union{Nothing, T}
+using Exts: Maybe
 
 """
 	read(f::AbstractString, DataFrame, colnames = nothing;
@@ -44,7 +43,7 @@ function Base.read(f::AbstractString, ::Type{DataFrame}, xs...; kw...)
 	open(s -> read(s, DataFrame, xs...; kw...), convert(String, f)::String)
 end
 function Base.read(s::IOStream, ::Type{DataFrame},
-	colnames::Maybe{Union{Symbol, AbstractVector}} = nothing, xs...; quotes::Bool = true,
+	colnames::Maybe(Symbol, AbstractVector) = nothing, xs...; quotes::Bool = true,
 	comments::Bool = true, comment_char::AbstractChar = '#', kw...)
 	cols, colnames = if isnothing(colnames)
 		t = readdlm(s, xs...; quotes, comments, comment_char, kw..., header = true)::NTuple{2, Matrix}
