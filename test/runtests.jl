@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Heptazhou <zhou@0h7z.com>
+# Copyright (C) 2022-2024 Heptazhou <zhou@0h7z.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -79,12 +79,11 @@ end
 	# https://heasarc.gsfc.nasa.gov/fitsio/c/c_user/node15.html
 
 	local A_Nothing = Array{Nothing, 3}(undef, Tuple(rand(0:9, 3)))
-	local FITSIOExt = Base.get_extension(Exts, :FITSIOExt)
-	@test FITSIOExt.ensure_vector(A_Nothing) isa
+	@test Exts.ext(:FITSIO).ensure_vector(A_Nothing) isa
 		  AbstractVector{<:AbstractMatrix{Nothing}}
 
 	using HTTP: HTTP
-	local tmp = HTTP.download(
+	local tmp = @nowarn HTTP.download(
 		"https://data.sdss.org/sas/dr18/spectro/sdss/redux/" *
 		"v5_13_2/spectra/lite/3650/spec-3650-55244-0001.fits",
 		update_period = Inf,
@@ -100,5 +99,19 @@ end
 	using StatsBase: mean, weights
 	@test mean(1:20, weights(zeros(20))) |> isnan
 	@test mean(1:20) === nanmean(1:20, weights(zeros(20)))
+end
+
+@test all(nameof.(last.(Exts.ext(:))) .== first.(Exts.ext(:)))
+@static parse(Bool, get(ENV, "CI", "0")) || cd(@__DIR__) do
+	cp("./Project.toml", "../docs/Project.toml", force = true)
+	fs = [
+		"../README.md"
+		"../docs/src/api.md"
+	]
+	md = join(readstr.(fs), "*"^5 * "\n")
+	md = replace(md, r"^#+\K\s+"m => " ")
+	write("../docs/src/index.md", md)
+
+	include("../docs/make.jl")
 end
 

@@ -14,23 +14,31 @@
 
 module Exts
 
+export IntOrStr
 export Maybe
+export SymOrStr
+export VTuple
 
+export @noinfo
+export @nowarn
 export getfirst
 export getlast
 export invsqrt
+export lmap
 export nanmean
 export readstr
 
+using Logging: Logging
 using Reexport: @reexport
 
 @reexport begin
 #! format: noindent
-using Base.Iterators: map as lmap
 using Base.Threads: @spawn, @threads, nthreads
 end
 
 include("BaseExt.jl")
+include("Function.jl")
+include("Macro.jl")
 include("Type.jl")
 
 getfirst(predicate::Function, A) = A[findfirst(predicate, A)]
@@ -38,13 +46,6 @@ getfirst(predicate::Function)    = Base.Fix1(getfirst, predicate)
 
 getlast(predicate::Function, A) = A[findlast(predicate, A)]
 getlast(predicate::Function)    = Base.Fix1(getlast, predicate)
-
-readstr(x)::String = read(x, String)
-
-function invsqrt(x::T) where T <: Real
-	F::Type = float(T)
-	F(big(x) |> inv |> sqrt)
-end
 
 # StatisticsExt
 function nanmean end

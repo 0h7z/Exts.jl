@@ -12,6 +12,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""
+	FITSIOExt
+"""
 module FITSIOExt
 
 using Base.Threads: @spawn
@@ -21,6 +24,8 @@ using FITSIO: FITSIO, FITS, EitherTableHDU
 
 const ensure_vector(a::AbstractArray)  = eachslice(a, dims = ndims(a))
 const ensure_vector(v::AbstractVector) = v
+
+@doc "	FITSIO.EitherTableHDU = Union{TableHDU, ASCIITableHDU}" EitherTableHDU
 
 """
 	read(t::ASCIITableHDU, DataFrame,
@@ -39,7 +44,7 @@ function Base.read(t::EitherTableHDU, ::Type{DataFrame},
 		@spawn ensure_vector(FITS(f -> read(f[n], colname), f))
 	end
 	DataFrame(map(fetch, cols), colnames)
-end
+end # @doc read(::TableHDU, ::Type{DataFrame}, ::AbstractVector{Symbol})
 
 end # module
 

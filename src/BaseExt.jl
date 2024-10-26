@@ -12,6 +12,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""
+	BaseExt
+"""
 module BaseExt
 
 function Base.adjoint(m::T) where T <: AbstractVecOrMat{Any}
@@ -35,14 +38,14 @@ function Base.convert(::Type{S}, v::AbstractVector) where S <: AbstractSet{T} wh
 end
 
 """
-	log10(x::T, σ::T) where T <: Real -> NTuple{2, AbstractFloat}
+	log10(x::T, σ::T) -> NTuple{2, AbstractFloat} where T <: Real
 
 Compute the logarithm of `x ± σ` to base 10.
 """
 function Base.log10(x::T, σ::T) where T <: Real
 	# https://physics.stackexchange.com/q/95254
-	log10(x), σ / log(10)x
-end
+	log10(x), (σ / log(10)x)
+end # @doc log10(::T, ::T) where T <: Real
 
 end # module
 

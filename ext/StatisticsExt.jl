@@ -12,6 +12,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+"""
+	StatisticsExt
+"""
 module StatisticsExt
 
 using Exts: Exts
@@ -25,12 +28,14 @@ Compute the weighted mean of array `A` with weight vector `w`, and fallback
 to the unweighted mean if `w` is all zero(s) (instead of returning `NaN`). If
 `dims` (of type `Int`) is provided, compute the mean along dimension `dims`.
 
-See also [`mean(::AbstractArray, ::AbstractWeights)`](@ref).
+See also [`mean(::AbstractArray)`](@extref `Statistics.mean`),
+[`mean(::AbstractArray,
+::AbstractWeights)`](https://juliastats.org/StatsBase.jl/stable/scalarstats/#Statistics.mean).
 """
 function Exts.nanmean(A::AbstractArray, w::AbstractWeights; dims::Union{Colon, Int} = :)
 	r = mean(A, (w); dims)
 	!isnan(r) ? (r) : (@assert all(iszero, w); mean(A; dims))
-end
+end # @doc nanmean
 
 end # module
 

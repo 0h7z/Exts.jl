@@ -12,20 +12,30 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-const IntOrStr = Union{AbstractString, Integer}
-const SymOrStr = Union{AbstractString, Symbol}
+for level ∈ ("info", "warn")
+	local t = titlecase(level)
+	local u = ["debug", "info", "warn", "error"]
+	local v = "`@" .* u[begin:findlast(==(level), u)] .* "`"
+	@eval begin
+	#! format: noindent
+	"""
+		@no$($level) expr
 
-const Maybe{T} = Union{T, Nothing}
-const VTuple{T} = Tuple{Vararg{T}}
-
-const Maybe(T::Type...) = Maybe{Union{T...}}
-
-@doc "	IntOrStr -> Union{AbstractString, Integer}" IntOrStr
-@doc "	SymOrStr -> Union{AbstractString, Symbol}" SymOrStr
-@doc "	VTuple{T} -> Tuple{Vararg{T}}" VTuple
-
-@doc """
-	Maybe{T} -> Union{T, Nothing}
-	Maybe(T::Type...) -> Maybe{Union{T...}}
-""" Maybe
+	Suppress all lexically-enclosed uses of $($(join(v, ", "))).
+	"""
+	macro $(Symbol(:no, level))(expr)
+	#! format: noindent
+	quote
+		let L = Logging.min_enabled_level(Logging.current_logger()) - 1
+			try
+				Logging.disable_logging(max(Logging.$(Symbol($t)), L))
+				$(esc(expr))
+			finally
+				Logging.disable_logging(L)
+			end
+		end
+	end
+	end
+	end
+end
 
