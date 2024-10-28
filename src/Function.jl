@@ -36,7 +36,10 @@ end
 	lmap(f, iterators...)
 
 Create a lazy mapping. This is another syntax for writing `(f(args...) for
-args in zip(iterators...))`.
+args in zip(iterators...))`. Equivalent to [`Iterators.map`](@extref
+Base.Iterators.map).
+
+See also [`map`](@extref Base.map).
 
 # Examples
 ```jldoctest
@@ -74,5 +77,82 @@ julia> invsqrt(4)
 function invsqrt(x::T) where T <: Real
 	F::Type = float(T)
 	F(big(x) |> inv |> sqrt)
+end
+
+"""
+	Exts.isdir(path::AbstractString) -> Bool
+
+Return `true` if `path` is a directory, `false` otherwise.
+
+# Examples
+```jldoctest
+julia> Exts.isdir(homedir())
+true
+
+julia> Exts.isdir("not/a/directory")
+false
+```
+
+See also [`isfile`](@extref Base.Filesystem.isfile) and [`ispath`](@extref
+Base.Filesystem.ispath).
+"""
+function isdir(path::AbstractString)::Bool
+	p = slash(path)
+	r = Base.isdir(p)
+	@static !Sys.iswindows() ? r : r =
+		!r || !contains(p, r"(?:^|/)\.{3,}(?:/|$)"s) ? r :
+		@try pwd() ≠ cd(pwd, p) ≠ realpath("/") false
+end
+
+"""
+	Exts.isdirpath(path::AbstractString) -> Bool
+
+Determine whether a path refers to a directory (for example, ends with a path
+separator).
+
+# Examples
+```jldoctest
+julia> Exts.isdirpath("/home")
+false
+
+julia> Exts.isdirpath("/home/")
+true
+```
+"""
+function isdirpath(path::AbstractString)::Bool
+	path == "" && return false
+	Base.isdirpath(path)
+end
+
+"""
+	stdpath(path::AbstractString...; real = false) -> String
+
+Standardize a path (or a set of paths, by joining them together), removing
+"." and ".." entries and changing path separator to the standard "/".
+
+If `path` is a directory, the returned path will end with a "/".
+
+If `real` is true, symbolic links are expanded, however the `path` must exist
+in the filesystem. On case-insensitive case-preserving filesystems, the
+filesystem's stored case for the path is returned.
+
+# Examples
+```jldoctest
+julia> stdpath("/home/myuser/../example.jl")
+"/home/example.jl"
+
+julia> stdpath("Documents\\\\Julia\\\\")
+"Documents/Julia/"
+```
+"""
+function stdpath(path::AbstractString, paths::AbstractString...; real::Bool = false)::String
+	p = joinpath(path, paths...)
+	p = !isempty(p) ? normpath(p) : return p
+	a = isabspath(p)
+	d = isdirpath(p) || isdir(p)
+	p = real ? realpath(p) : p
+	p = !a ? relpath(p) : p
+	p = slash(p)
+	p = !d || endswith(p, '/') ? p : p * '/'
 end
 

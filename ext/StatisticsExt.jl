@@ -28,7 +28,7 @@ Compute the weighted mean of array `A` with weight vector `w`, and fallback
 to the unweighted mean if `w` is all zero(s) (instead of returning `NaN`). If
 `dims` (of type `Int`) is provided, compute the mean along dimension `dims`.
 
-See also [`mean(::AbstractArray)`](@extref `Statistics.mean`),
+See also [`mean(::AbstractArray)`](@extref Statistics.mean),
 [`mean(::AbstractArray,
 ::AbstractWeights)`](https://juliastats.org/StatsBase.jl/stable/scalarstats/#Statistics.mean).
 """

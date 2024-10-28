@@ -19,14 +19,18 @@ export Maybe
 export SymOrStr
 export VTuple
 
+export @catch
 export @noinfo
 export @nowarn
+export @try
+export @trycatch
 export getfirst
 export getlast
 export invsqrt
 export lmap
 export nanmean
 export readstr
+export stdpath
 
 using Logging: Logging
 using Reexport: @reexport
@@ -36,8 +40,6 @@ using Reexport: @reexport
 using Base.Threads: @spawn, @threads, nthreads
 end
 
-include("BaseExt.jl")
-include("Function.jl")
 include("Macro.jl")
 include("Type.jl")
 
@@ -46,6 +48,11 @@ getfirst(predicate::Function)    = Base.Fix1(getfirst, predicate)
 
 getlast(predicate::Function, A) = A[findlast(predicate, A)]
 getlast(predicate::Function)    = Base.Fix1(getlast, predicate)
+
+slash(x::AbstractString)::String = replace(x, '\\' => '/')
+
+include("BaseExt.jl")
+include("Function.jl")
 
 # StatisticsExt
 function nanmean end

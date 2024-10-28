@@ -49,9 +49,11 @@ jobs:
       - uses: heptazhou/julia-codecov@v1
         with:
           dirs: src:ext
-      - uses: codecov/codecov-action@v3.1.5
+      - uses: codecov/codecov-action@v4
         with:
           file: lcov.info
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
   docs:
     runs-on: ubuntu-latest
     timeout-minutes: 10

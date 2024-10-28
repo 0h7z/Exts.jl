@@ -36,6 +36,36 @@ end
 	@test all(@. float(v) <: AbstractFloat)
 end
 
+@testset "Base" begin
+	@static if !Sys.iswindows()
+	#! format: noindent
+	@test Bool(0) == Base.isdir("")
+	@test Bool(1) == Base.isdir(".")
+	@test Bool(1) == Base.isdir("..")
+	@test Bool(0) == Base.isdir("...")
+	@test Bool(0) == Base.isdir("/...")
+	@test Bool(0) == Base.isdir("/.../")
+	else
+	#! format: noindent
+	@test Bool(0) == Base.isdir("")
+	@test Bool(1) == Base.isdir(".")
+	@test Bool(1) == Base.isdir("..")
+	@test Bool(1) == Base.isdir("...") # why?
+	@test Bool(1) == Base.isdir("/...") # why?
+	@test Bool(1) == Base.isdir("/.../") # why?
+	end
+	@test Bool(1) == Base.isdirpath("") # why?
+	@test Bool(1) == Base.isdirpath(".")
+	@test Bool(1) == Base.isdirpath("..")
+	@test Bool(0) == Base.isdirpath("...")
+	@test Bool(0) == Base.isdirpath("/...")
+	@test Bool(1) == Base.isdirpath("/.../")
+
+	@test joinpath("") == ""
+	@test normpath("") == "." # why?
+	@test_throws Base.IOError realpath("")
+end
+
 @testset "BaseExt" begin
 	@test_throws MethodError convert(Set, 1:3)
 	@test_throws MethodError convert(Set{Int}, 1:3)
@@ -46,12 +76,14 @@ end
 	@test_throws UndefVarError invsqrt
 	@test_throws UndefVarError Maybe
 	@test_throws UndefVarError readstr
+	@test_throws UndefVarError stdpath
 	using Exts
 
 	@test [:_ -1] == [:_, -1]'
 	@test [:p :q] == [:p, :q]'
 	@test ['1' '2'] == ['1', '2']'
 	@test ["x" "y"] == ["x", "y"]'
+	@test cd(() -> stdpath("../test"), @__DIR__) == "./"
 	@test chomp(readstr(@__FILE__)) == readchomp(@__FILE__)
 	@test convert(Set{Int}, 1:3) == convert(Set, 1:3) == Set(1:3)
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
@@ -59,7 +91,35 @@ end
 	@test invsqrt(2^-2) == 2
 	@test Maybe{Int} == Maybe(Int) == Maybe(Int, Int)
 	@test Maybe{Nothing} == Maybe(Nothing) == Nothing
+	@test stdpath("...") == "..."
+	@test stdpath("..") == "../"
+	@test stdpath(".") == "./"
+	@test stdpath("") == ""
 	@test_nowarn log10(11, 2)
+
+	@test Bool(0) == Exts.isdir("")
+	@test Bool(1) == Exts.isdir(".")
+	@test Bool(1) == Exts.isdir("..")
+	@test Bool(0) == Exts.isdir("...")
+	@test Bool(0) == Exts.isdir("/...")
+	@test Bool(0) == Exts.isdir("/.../")
+
+	@test Bool(0) == Exts.isdirpath("")
+	@test Bool(1) == Exts.isdirpath(".")
+	@test Bool(1) == Exts.isdirpath("..")
+	@test Bool(0) == Exts.isdirpath("...")
+	@test Bool(0) == Exts.isdirpath("/...")
+	@test Bool(1) == Exts.isdirpath("/.../")
+
+	@eval begin
+	#! format: noindent
+	@test @try error() true
+	@test @trycatch true
+	@test ErrorException("") == @catch error()
+	@test ErrorException("") == @trycatch error()
+	@test isnothing(@catch true)
+	@test isnothing(@try error())
+	end
 end
 
 @testset "DataFramesExt" begin
