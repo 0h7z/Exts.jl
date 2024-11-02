@@ -17,6 +17,7 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
+    continue-on-error: ${{ matrix.experimental }}
     strategy:
       fail-fast: false
       matrix:
@@ -25,14 +26,15 @@ jobs:
           - ubuntu-latest
           - macos-latest
         julia-version:
-          - "min"
-          - "lts"
-          - "1"
+          - "1.9"
+          - "1.10"
+          - "1.11"
           - "pre"
           - "nightly"
-        exclude:
-          - os: macos-latest
-            julia-version: "min"
+        include:
+          - experimental: false
+          - experimental: true
+            julia-version: "nightly"
     steps:
       - uses: actions/checkout@v4
         with:

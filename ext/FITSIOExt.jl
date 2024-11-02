@@ -19,19 +19,16 @@ module FITSIOExt
 
 using Base.Threads: @spawn
 using DataFrames: DataFrame
-using Exts: SymOrStr, lmap
+using Exts: SymOrStr, ensure_vector, lmap
 using FITSIO: FITSIO, FITS, EitherTableHDU
 
-const ensure_vector(a::AbstractArray)  = eachslice(a, dims = ndims(a))
-const ensure_vector(v::AbstractVector) = v
-
-@doc "	FITSIO.EitherTableHDU = Union{TableHDU, ASCIITableHDU}" EitherTableHDU
+@doc "	FITSIO.EitherTableHDU = Union{ASCIITableHDU, TableHDU}" EitherTableHDU
 
 """
-	read(t::ASCIITableHDU, DataFrame,
+	read(t::FITSIO.EitherTableHDU, DataFrame,
 		colnames = Tables.columnnames(t)) -> DataFrame
-	read(t::TableHDU, DataFrame,
-		colnames = Tables.columnnames(t)) -> DataFrame
+
+Read a DataFrame from the given ASCIITableHDU or TableHDU.
 """
 function Base.read(t::EitherTableHDU, ::Type{DataFrame},
 	colnames::AbstractVector{<:SymOrStr} = FITSIO.Tables.columnnames(t))

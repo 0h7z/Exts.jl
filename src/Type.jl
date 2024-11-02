@@ -14,18 +14,26 @@
 
 const IntOrStr = Union{AbstractString, Integer}
 const SymOrStr = Union{AbstractString, Symbol}
+const VecOrTup = Union{AbstractVector, Tuple}
 
+const Datum{T} = Union{T, Missing}
 const Maybe{T} = Union{T, Nothing}
 const VTuple{T} = Tuple{Vararg{T}}
 
-const Maybe(T::Type...) = Maybe{Union{T...}}
+const datum(T::Type...) = Datum{Union{T...}}
+const maybe(T::Type...) = Maybe{Union{T...}}
 
 @doc "	IntOrStr -> Union{AbstractString, Integer}" IntOrStr
 @doc "	SymOrStr -> Union{AbstractString, Symbol}" SymOrStr
+@doc "	VecOrTup -> Union{AbstractVector, Tuple}" VecOrTup
 @doc "	VTuple{T} -> Tuple{Vararg{T}}" VTuple
 
 @doc """
+	Datum{T} -> Union{T, Missing}
+	datum(T::Type...) -> Datum{Union{T...}}
+""" Datum, datum
+@doc """
 	Maybe{T} -> Union{T, Nothing}
-	Maybe(T::Type...) -> Maybe{Union{T...}}
-""" Maybe
+	maybe(T::Type...) -> Maybe{Union{T...}}
+""" Maybe, maybe
 

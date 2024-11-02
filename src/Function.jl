@@ -62,7 +62,7 @@ See also [`read`](@extref Base.read), [`readchomp`](@extref Base.readchomp).
 readstr(x)::String = read(x, String)
 
 """
-	invsqrt(x::T) -> float(T) where T <: Real
+	invsqrt(x::T) -> AbstractFloat where T <: Real
 
 Return ``\\sqrt{x^{-1}}``.
 
@@ -74,9 +74,9 @@ julia> invsqrt(4)
 0.5
 ```
 """
-function invsqrt(x::T) where T <: Real
+function invsqrt(x::T)::AbstractFloat where T <: Real
 	F::Type = float(T)
-	F(big(x) |> inv |> sqrt)
+	F(sqrt(inv(big(x))))::F
 end
 
 """

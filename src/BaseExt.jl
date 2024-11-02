@@ -30,6 +30,10 @@ function Base.adjoint(m::T) where T <: AbstractVecOrMat{<:AbstractString}
 	permutedims(m)::AbstractMatrix{<:AbstractString}
 end
 
+function Base.collect(f::Function, collection)
+	filter(f, collect(collection))
+end
+
 function Base.convert(::Type{S}, v::AbstractVector) where S <: AbstractSet
 	S(eltype(S)[v;])
 end
@@ -42,10 +46,19 @@ end
 
 Compute the logarithm of `x ± σ` to base 10.
 """
-function Base.log10(x::T, σ::T) where T <: Real
+function Base.log10(x::T, σ::T)::NTuple{2, AbstractFloat} where T <: Real
+	F::Type = float(T)
+	log10(x)::F, F(σ / log(10)x)::F
 	# https://physics.stackexchange.com/q/95254
-	log10(x), (σ / log(10)x)
 end # @doc log10(::T, ::T) where T <: Real
+
+for T ∈ (Any, Int, Integer, Val, typeof.(Val.(0:3))...)
+	@eval begin
+		function Base.ntuple(n::Int, x::$T)
+			ntuple(Returns(x), n)::NTuple{N, T} where {N, T <: $T}
+		end
+	end
+end
 
 end # module
 

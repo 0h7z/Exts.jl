@@ -49,7 +49,7 @@ end
 	See also [The-try/catch-statement](@extref), [`try/catch`](@extref try),
 	[`@trycatch`](@ref), [`@catch`](@ref).
 	"""
-	macro $(Symbol(:try))(expr, default = nothing)
+	macro $(:try)(expr, default = nothing)
 		quote
 			try
 				$(esc(expr))
@@ -67,7 +67,7 @@ end
 	See also [The-try/catch-statement](@extref), [`try/catch`](@extref try),
 	[`@trycatch`](@ref), [`@try`](@ref).
 	"""
-	macro $(Symbol(:catch))(expr)
+	macro $(:catch)(expr)
 		quote
 			try
 				$(esc(expr))

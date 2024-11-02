@@ -17,15 +17,15 @@
 """
 module DataFramesExt
 
-using DataFrames: DataFrame
+using DataFrames: DataFrames, AbstractDataFrame, DataFrame
 using DelimitedFiles: readdlm, writedlm
-using Exts: Maybe
+using Exts: Exts, maybe
+
+function Exts.dropmissing(x::AbstractDataFrame, xs...; kw...)
+	DataFrames.dropmissing(x, xs...; kw...)
+end
 
 let doc = raw"""
-	read(f::AbstractString, DataFrame, colnames = nothing;
-		quotes = true, comments = true, comment_char = '#') -> DataFrame
-	read(s::IOStream, DataFrame, colnames = nothing;
-		quotes = true, comments = true, comment_char = '#') -> DataFrame
 
 Read a DataFrame from the given I/O stream or file where each line gives one
 row.
@@ -43,13 +43,19 @@ If `comments` is `true`, lines beginning with `comment_char` and text
 following `comment_char` in any line are ignored.
 """
 #! format: noindent
-@doc doc
+@doc raw"""
+	read(f::AbstractString, DataFrame, colnames = nothing;
+		quotes = true, comments = true, comment_char = '#') -> DataFrame
+""" * doc
 function Base.read(f::AbstractString, ::Type{DataFrame}, xs...; kw...)
 	open(s -> read(s, DataFrame, xs...; kw...), convert(String, f)::String)
 end
-@doc doc
+@doc raw"""
+	read(s::IOStream, DataFrame, colnames = nothing;
+		quotes = true, comments = true, comment_char = '#') -> DataFrame
+""" * doc
 function Base.read(s::IOStream, ::Type{DataFrame},
-	colnames::Maybe(Symbol, AbstractVector) = nothing, xs...; quotes::Bool = true,
+	colnames::maybe(Symbol, AbstractVector) = nothing, xs...; quotes::Bool = true,
 	comments::Bool = true, comment_char::AbstractChar = '#', kw...)
 	cols, colnames = if isnothing(colnames)
 		t = readdlm(s, xs...; quotes, comments, comment_char, kw..., header = true)::NTuple{2, Matrix}
@@ -60,11 +66,9 @@ function Base.read(s::IOStream, ::Type{DataFrame},
 	end
 	DataFrame(cols, colnames)
 end
-end # @doc read(::IOStream, ::Type{DataFrame}, ::Maybe(Symbol, AbstractVector))
+end # @doc read(::IOStream, ::Type{DataFrame}, ::maybe(Symbol, AbstractVector))
 
 let doc = raw"""
-	write(f::AbstractString, x::DataFrame; delim = '\t', header = true) -> Int64
-	write(s::IOStream, x::DataFrame; delim = '\t', header = true)       -> Int64
 
 Write a DataFrame as text to the given I/O stream or file, using the given
 delimiter `delim` (which defaults to tab, but can be anything printable,
@@ -73,17 +77,21 @@ typically a character or string).
 Return the number of bytes written into the stream or file.
 """
 #! format: noindent
-@doc doc
-function Base.write(f::AbstractString, x::DataFrame; kw...)
+@doc raw"""
+	write(f::AbstractString, x::AbstractDataFrame; delim = '\t', header = true) -> Int64
+""" * doc
+function Base.write(f::AbstractString, x::AbstractDataFrame; kw...)
 	open(s -> write(s, x; kw...), convert(String, f)::String, "w")
 end
-@doc doc
-function Base.write(s::IOStream, x::DataFrame; delim = '\t', header::Bool = true, kw...)
+@doc raw"""
+	write(s::IOStream, x::AbstractDataFrame; delim = '\t', header = true) -> Int64
+""" * doc
+function Base.write(s::IOStream, x::AbstractDataFrame; delim = '\t', header::Bool = true, kw...)
 	pos₀ = position(s)
 	writedlm(s, header ? [propertynames(x)'; Matrix(x)] : Matrix(x), delim; kw...)
 	position(s) - pos₀
 end
-end # @doc write(::IOStream, ::DataFrame)
+end # @doc write(::IOStream, ::AbstractDataFrame)
 
 end # module
 

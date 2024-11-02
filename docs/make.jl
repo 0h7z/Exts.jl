@@ -22,9 +22,9 @@ DocMeta.setdocmeta!(Exts, :DocTestSetup, quote
 using Exts
 end)
 
-using DataFrames
-using FITSIO
-using StatsBase
+using DataFrames: DataFrames
+using FITSIO: FITSIO
+using StatsBase: StatsBase
 
 const entry = OrderedDict{String, String}()
 const extra = Vector{Module}()
@@ -41,7 +41,7 @@ for (k, v) ∈ Exts.ext(:)
 	entry["$k"] = "$k.md"
 	write("src/" * entry["$k"], md)
 	push!(extra, v)
-	@eval $(Symbol(k)) = $v
+	@eval $k = $v
 end
 end
 
