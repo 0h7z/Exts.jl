@@ -37,3 +37,15 @@ const maybe(T::Type...) = Maybe{Union{T...}}
 	maybe(T::Type...) -> Maybe{Union{T...}}
 """ Maybe, maybe
 
+const LDict = LittleDict
+const ODict = OrderedDict
+const OSet  = OrderedSet
+const UDict = Dict
+const USet  = Set
+
+@doc "	LDict -> LittleDict" LDict
+@doc "	ODict -> OrderedDict" ODict
+@doc "	OSet  -> OrderedSet" OSet
+@doc "	UDict -> Dict # UnorderedDict" UDict
+@doc "	USet  -> Set  # UnorderedSet" USet
+

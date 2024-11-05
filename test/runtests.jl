@@ -67,6 +67,56 @@ end
 end
 
 @testset "BaseExt" begin
+	# Type
+	@test_throws UndefVarError datum
+	@test_throws UndefVarError Datum
+	@test_throws UndefVarError IntOrStr
+	@test_throws UndefVarError LDict
+	@test_throws UndefVarError maybe
+	@test_throws UndefVarError Maybe
+	@test_throws UndefVarError ODict
+	@test_throws UndefVarError OSet
+	@test_throws UndefVarError SymOrStr
+	@test_throws UndefVarError UDict
+	@test_throws UndefVarError USet
+	@test_throws UndefVarError VecOrTup
+	@test_throws UndefVarError VTuple
+
+	# Function
+	@test_throws LoadError @eval @catch
+	@test_throws LoadError @eval @noinfo
+	@test_throws LoadError @eval @nowarn
+	@test_throws LoadError @eval @try
+	@test_throws LoadError @eval @trycatch
+	@test_throws UndefVarError ∠
+	@test_throws UndefVarError dropmissing
+	@test_throws UndefVarError dropnothing
+	@test_throws UndefVarError ensure_vector
+	@test_throws UndefVarError flatten
+	@test_throws UndefVarError getfirst
+	@test_throws UndefVarError getlast
+	@test_throws UndefVarError invsqrt
+	@test_throws UndefVarError lmap
+	@test_throws UndefVarError nanmean
+	@test_throws UndefVarError notmissing
+	@test_throws UndefVarError pause
+	@test_throws UndefVarError polar
+	@test_throws UndefVarError readstr
+	@test_throws UndefVarError return_type
+	@test_throws UndefVarError stdpath
+
+	# Reexport
+	@test_throws LoadError @eval @spawn
+	@test_throws LoadError @eval @threads
+	@test_throws UndefVarError freeze
+	@test_throws UndefVarError LittleDict
+	@test_throws UndefVarError nonnothingtype
+	@test_throws UndefVarError notnothing
+	@test_throws UndefVarError nthreads
+	@test_throws UndefVarError OrderedDict
+	@test_throws UndefVarError OrderedSet
+	@test_throws UndefVarError return_types
+
 	@test_throws MethodError collect(isodd, 1:3)
 	@test_throws MethodError collect(isodd, i for i ∈ 1:3)
 	@test_throws MethodError convert(Set, 1:3)
@@ -74,16 +124,6 @@ end
 	@test_throws MethodError log10(11, 2)
 	@test_throws MethodError ntuple(2, 1)
 	@test_throws MethodError repr([:a, 1]')
-	@test_throws UndefVarError datum
-	@test_throws UndefVarError Datum
-	@test_throws UndefVarError ensure_vector
-	@test_throws UndefVarError getfirst
-	@test_throws UndefVarError getlast
-	@test_throws UndefVarError invsqrt
-	@test_throws UndefVarError maybe
-	@test_throws UndefVarError Maybe
-	@test_throws UndefVarError readstr
-	@test_throws UndefVarError stdpath
 	a2_missing = Array{Missing, 2}(undef, Tuple(rand(0:9, 2)))
 	a3_nothing = Array{Nothing, 3}(undef, Tuple(rand(0:9, 3)))
 	using Exts
@@ -104,6 +144,7 @@ end
 	@test dropmissing(x for x ∈ a2_missing) == dropmissing(a2_missing) == []
 	@test dropnothing(x for x ∈ a3_nothing) == dropnothing(a3_nothing) == []
 	@test ensure_vector(a3_nothing) isa AbstractVector{<:AbstractMatrix{Nothing}}
+	@test flatten(rand(UInt8, 3, 3, 3)::Array{UInt8, 3}) isa Vector{UInt8}
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
 	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
@@ -114,6 +155,8 @@ end
 	@test nonmissingtype(Datum{Nothing}) == Nothing
 	@test nonnothingtype(Maybe{Missing}) == Missing
 	@test nonnothingtype(Maybe{Nothing}) == Union{}
+	@test notmissing(nothing) === nothing
+	@test notnothing(missing) === missing
 	@test ntuple(0, 0x1) === ()
 	@test ntuple(1, 0x1) === (0x1,)
 	@test ntuple(2, 0x1) === (0x1, 0x1)
@@ -122,12 +165,19 @@ end
 	@test ntuple(2, Int64(1)) === Int64.((1, 1))
 	@test ntuple(2, Val(001)) === Val.((001, 001))
 	@test ntuple(2, Val(0x1)) === Val.((0x1, 0x1))
+	@test polar(1, -90) === ∠(270) == -(1im)
+	@test polar(1, +90) === ∠(090) == +(1im)
+	@test polar(1, 180) === ∠(180) == -(1.0)
+	@test polar(1, 360) === ∠(000) == +(1.0)
+	@test polar(1, rad2deg(1)) === ∠(rad2deg(1)) === Exts.cis(1)
 	@test return_type(invsqrt, ntuple(1, Any)) == AbstractFloat
 	@test return_type(log10, ntuple(2, Any)) == NTuple{2, AbstractFloat}
 	@test stdpath("...") == "..."
 	@test stdpath("..") == "../"
 	@test stdpath(".") == "./"
 	@test stdpath("") == ""
+	@test_throws ArgumentError notmissing(missing)
+	@test_throws ArgumentError notnothing(nothing)
 
 	@test Bool(0) == Exts.isdir("")
 	@test Bool(1) == Exts.isdir(".")
@@ -152,12 +202,21 @@ end
 	@test isnothing(@catch true)
 	@test isnothing(@try error())
 	end
+
+	fi, i = mktemp()
+	fo, o = mktemp()
+	redirect_stdio(stdin = i, stdout = o) do
+		write(stdin, '\n'), seekstart(stdin)
+		pause()
+	end
+	close.((i, o))
+	@test readstr(fo) ≡ "Press any key to continue . . . \n"
 end
 
 @testset "DataFramesExt" begin
 	using DataFrames: DataFrame
 	df  = DataFrame(rand(Int16, (8, 2)), [:x, :y])
-	tmp = tempname()
+	tmp = tempname(mktempdir())
 	using CSV: CSV
 	@test 36 ≤ write(tmp, df) == filesize(tmp)
 	@test df == read(tmp, DataFrame)
@@ -175,13 +234,12 @@ end
 	tmp = HTTP.download(
 		"https://data.sdss.org/sas/dr18/spectro/sdss/redux/" *
 		"v5_13_2/spectra/lite/3650/spec-3650-55244-0001.fits",
-		update_period = Inf,
+		mktempdir(), update_period = Inf,
 	)
 	FITS(f -> @test_throws(ArgumentError,
 			read(f["SPALL"], DataFrame)), tmp, "r+")
 	FITS(f -> @test_nowarn(
 			read(f["SPALL"], DataFrame)), tmp, "r")
-	rm(tmp, force = true)
 end
 
 @testset "StatisticsExt" begin

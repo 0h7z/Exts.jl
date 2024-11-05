@@ -15,7 +15,7 @@
 using Documenter: Documenter, DocMeta
 using DocumenterInterLinks: InterLinks
 using Exts
-using OrderedCollections: OrderedDict
+using HTTP: HTTP
 
 DocMeta.setdocmeta!(Exts, :DocTestSetup, quote
 #! format: noindent
@@ -26,10 +26,11 @@ using DataFrames: DataFrames
 using FITSIO: FITSIO
 using StatsBase: StatsBase
 
-const entry = OrderedDict{String, String}()
+const cache = URL::String -> (URL, HTTP.download(URL * "objects.inv", mktempdir()))
+const entry = ODict{String, String}()
 const extra = Vector{Module}()
 const links = InterLinks(
-	"Julia" => "https://docs.julialang.org/en/v1/",
+	"Julia" => cache("https://docs.julialang.org/en/v1/"),
 )
 
 cd(@__DIR__) do

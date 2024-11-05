@@ -13,6 +13,25 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
+	Exts.cis(x::Real) -> Complex{<:AbstractFloat}
+
+More accurate method for `exp(im*x)` (especially for large x).
+
+See also [`∠`](@ref), [`polar`](@ref), [`Base.cis`](@extref),
+[`cispi`](@extref Base.cispi).
+
+# Examples
+```jldoctest
+julia> -1 == -Exts.cis(2π) == Exts.cis(-π) == Exts.cis(π)
+true
+
+julia> -1 != -Base.cis(2π) != Base.cis(-π) != Base.cis(π)
+true
+```
+"""
+cis(theta::Real)::Complex{<:AbstractFloat} = cispi(theta / π)
+
+"""
 	Exts.ext(::Colon) -> VTuple{Pair{Symbol, Maybe{Module}}}
 """
 function ext(::Colon)::VTuple{Pair{Symbol, Maybe{Module}}}
@@ -31,35 +50,6 @@ function ext(x::Symbol)::Maybe{Module}
 	x ≡ :Base ? BaseExt :
 	Base.get_extension(Exts, Symbol(x, :Ext))
 end
-
-@doc """
-	lmap(f, iterators...)
-
-Create a lazy mapping. This is another syntax for writing `(f(args...) for
-args in zip(iterators...))`. Equivalent to [`Iterators.map`](@extref
-Base.Iterators.map).
-
-See also [`map`](@extref Base.map).
-
-# Examples
-```jldoctest
-julia> collect(lmap(x -> x^2, 1:3))
-3-element Vector{Int64}:
- 1
- 4
- 9
-```
-"""
-lmap = Iterators.map
-
-@doc raw"""
-	readstr(x) -> String
-
-Read the entirety of `x` as a string. Equivalent to `read(x, String)`.
-
-See also [`read`](@extref Base.read), [`readchomp`](@extref Base.readchomp).
-"""
-readstr(x)::String = read(x, String)
 
 """
 	invsqrt(x::T) -> AbstractFloat where T <: Real
@@ -123,6 +113,66 @@ function isdirpath(path::AbstractString)::Bool
 	path == "" && return false
 	Base.isdirpath(path)
 end
+
+@doc """
+	lmap(f, iterators...)
+
+Create a lazy mapping. This is another syntax for writing `(f(args...) for
+args in zip(iterators...))`. Equivalent to [`Iterators.map`](@extref
+Base.Iterators.map).
+
+See also [`map`](@extref Base.map).
+
+# Examples
+```jldoctest
+julia> collect(lmap(x -> x^2, 1:3))
+3-element Vector{Int64}:
+ 1
+ 4
+ 9
+```
+"""
+lmap = Iterators.map
+
+"""
+	notmissing(x)
+
+Throw an error if `x === missing`, and return `x` if not.
+
+See also [`notnothing`](@extref Base.notnothing).
+"""
+notmissing(x::Any) = x
+notmissing(::Missing) = throw(ArgumentError("missing passed to notmissing"))
+
+"""
+	polar(radius::Real, azimuth::Real) -> Complex{<:AbstractFloat}
+
+Return ``r∠θ``, where ``θ`` is in degrees. Equivalent to `radius∠(azimuth)`.
+
+See also [`∠`](@ref).
+"""
+function polar(radius::Real, azimuth::Real)::Complex{<:AbstractFloat}
+	cispi(azimuth / 180) * radius
+end
+"""
+	∠(azimuth::Real) -> Complex{<:AbstractFloat}
+
+Return ``1∠θ``, where ``θ`` is in degrees. Equivalent to `polar(1, azimuth)`.
+
+See also [`polar`](@ref), [`Exts.cis`](@ref).
+"""
+function ∠(azimuth::Real)::Complex{<:AbstractFloat}
+	cispi(azimuth / 180) # 360° = 2π rad
+end
+
+@doc raw"""
+	readstr(x) -> String
+
+Read the entirety of `x` as a string. Equivalent to `read(x, String)`.
+
+See also [`read`](@extref Base.read), [`readchomp`](@extref Base.readchomp).
+"""
+readstr(x)::String = read(x, String)
 
 """
 	stdpath(path::AbstractString...; real = false) -> String
