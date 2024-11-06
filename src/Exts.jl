@@ -27,6 +27,7 @@ export UDict
 export USet
 export VecOrTup
 export VTuple
+export VTuple1
 
 export @catch
 export @noinfo
@@ -55,6 +56,7 @@ using Reexport: @reexport
 
 @reexport begin
 #! format: noindent
+using Base: Fix1, Fix2
 using Base: nonnothingtype, notnothing, return_types
 using Base.Threads: @spawn, @threads, nthreads
 using OrderedCollections: LittleDict, OrderedDict, OrderedSet, freeze
@@ -62,6 +64,8 @@ end
 
 include("Macro.jl")
 include("Type.jl")
+
+(fs::VTuple1{Function})(xs...; kw...) = ((f(xs...; kw...) for f ∈ fs)...,)
 
 dropmissing(itr) = collect(skipmissing(itr))
 dropnothing(itr) = dropnothing(collect(itr))
@@ -91,12 +95,12 @@ function pause(msg::Maybe{AbstractString} = nothing; ante::Int = 0, post::Int = 
 	pause(stdin, stdout, msg)
 	print(stdout, '\n'^post)
 end
-function pause(in::IO, out::IO, msg::Maybe{AbstractString} = nothing)::Nothing
-	print(out, @something msg """Press any key to continue . . . """)
-	ccall(:jl_tty_set_mode, Int32, (Ptr{Cvoid}, Int32), in.handle, 1)
-	read(in, Char)
-	ccall(:jl_tty_set_mode, Int32, (Ptr{Cvoid}, Int32), in.handle, 0)
-	print(out, '\n')
+function pause(i::IO, o::IO, msg::Maybe{AbstractString} = nothing)::Nothing
+	print(o, @something msg raw"Press any key to continue . . . ")
+	ccall(:jl_tty_set_mode, Cint, (Ptr{Cvoid}, Cint), i.handle, 1)
+	read(i, Char)
+	ccall(:jl_tty_set_mode, Cint, (Ptr{Cvoid}, Cint), i.handle, 0)
+	print(o, '\n')
 end
 
 include("BaseExt.jl")

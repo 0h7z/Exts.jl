@@ -19,6 +19,7 @@ const VecOrTup = Union{AbstractVector, Tuple}
 const Datum{T} = Union{T, Missing}
 const Maybe{T} = Union{T, Nothing}
 const VTuple{T} = Tuple{Vararg{T}}
+const VTuple1{T} = Tuple{T, Vararg{T}}
 
 const datum(T::Type...) = Datum{Union{T...}}
 const maybe(T::Type...) = Maybe{Union{T...}}
@@ -27,6 +28,7 @@ const maybe(T::Type...) = Maybe{Union{T...}}
 @doc "	SymOrStr -> Union{AbstractString, Symbol}" SymOrStr
 @doc "	VecOrTup -> Union{AbstractVector, Tuple}" VecOrTup
 @doc "	VTuple{T} -> Tuple{Vararg{T}}" VTuple
+@doc "	VTuple1{T} -> Tuple{T, Vararg{T}}" VTuple1
 
 @doc """
 	Datum{T} -> Union{T, Missing}

@@ -81,6 +81,7 @@ end
 	@test_throws UndefVarError USet
 	@test_throws UndefVarError VecOrTup
 	@test_throws UndefVarError VTuple
+	@test_throws UndefVarError VTuple1
 
 	# Function
 	@test_throws LoadError @eval @catch
@@ -108,6 +109,8 @@ end
 	# Reexport
 	@test_throws LoadError @eval @spawn
 	@test_throws LoadError @eval @threads
+	@test_throws UndefVarError Fix1
+	@test_throws UndefVarError Fix2
 	@test_throws UndefVarError freeze
 	@test_throws UndefVarError LittleDict
 	@test_throws UndefVarError nonnothingtype
@@ -117,6 +120,8 @@ end
 	@test_throws UndefVarError OrderedSet
 	@test_throws UndefVarError return_types
 
+	@test_throws MethodError (>, <)(0)
+	@test_throws MethodError (sin, cos)(0)
 	@test_throws MethodError collect(isodd, 1:3)
 	@test_throws MethodError collect(isodd, i for i ∈ 1:3)
 	@test_throws MethodError convert(Set, 1:3)
@@ -128,6 +133,8 @@ end
 	a3_nothing = Array{Nothing, 3}(undef, Tuple(rand(0:9, 3)))
 	using Exts
 
+	@test (>, <)(0) isa NTuple{2, Fix2{<:Function, Int}}
+	@test (sin, cos)(0) === sincos(0)
 	@test [:_ -1] == [:_, -1]'
 	@test [:p :q] == [:p, :q]'
 	@test ['1' '2'] == ['1', '2']'
