@@ -17,6 +17,24 @@
 """
 module BaseExt
 
+using Base: Bottom, Fix1, Fix2
+using Base: rewrap_unionall, unwrap_unionall
+using Core: TypeofBottom
+
+@doc """
+	Bottom <- Union{}
+
+See [`Union{}`](@extref).
+""" Bottom
+for T in (:Fix1, :Fix2)
+#! format: noindent
+@eval @doc """
+	$($T)(f, x) -> Function
+
+See [`Base.$($T)`](@extref).
+""" $T
+end
+
 function Base.adjoint(m::T) where T <: AbstractVecOrMat{Any}
 	permutedims(m)::AbstractMatrix{Any}
 end
@@ -40,6 +58,24 @@ end
 function Base.convert(::Type{S}, v::AbstractVector) where S <: AbstractSet{T} where T
 	S(T[v;])
 end
+
+let UU = Union{Union, UnionAll}
+#! format: noindent
+@inline rewrap(r::Type, ::UU)            = r
+@inline unwrap(r::Union)                 = r
+@inline rewrap(T::DataType, U::UnionAll) = rewrap_unionall(T, U)::UnionAll
+@inline unwrap(T::UnionAll)              = unwrap_unionall(T)::Union{Union, DataType}
+
+@inline Base.iterate(::TypeofBottom)          = nothing
+@inline Base.iterate(::UnionAll, ::DataType)  = nothing
+@inline Base.iterate(::UU, ::TypeofBottom)    = nothing
+@inline Base.iterate(::UU, T::Type)           = T, Bottom
+@inline Base.iterate(T::DataType, i::Int = 1) = iterate(T.parameters, i)
+@inline Base.iterate(T::UU)                   = iterate(T, unwrap(T))
+@inline Base.iterate(U::UU, T::Union)         = rewrap(T.a, U), rewrap(T.b, U)
+end
+
+@inline Base.length(T::DataType) = length(T.parameters)
 
 """
 	log10(x::T, σ::T) -> NTuple{2, AbstractFloat} where T <: Real

@@ -4,10 +4,19 @@
 
 *****
 ##	Usage
-```julia
+```julia-repl
 pkg> registry add https://github.com/0h7z/0hjl.git
 pkg> add Exts
+```
 
+```julia
 julia> using Exts
+
+julia> ODict(Exts.ext(:)) # to see which extensions are loaded
+OrderedDict{Symbol, Union{Nothing, Module}} with 4 entries:
+  :BaseExt       => Exts.BaseExt
+  :DataFramesExt => DataFramesExt
+  :FITSIOExt     => FITSIOExt
+  :StatisticsExt => StatisticsExt
 ```
 

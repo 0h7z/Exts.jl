@@ -12,6 +12,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+@static if ("docs") ∈ ARGS
+	include("docs.jl")
+	exit()
+end
+
 using InteractiveUtils: subtypes
 using Test
 
@@ -34,6 +39,22 @@ end
 
 	@test 24 <= length(v)
 	@test all(@. float(v) <: AbstractFloat)
+	@test fieldnames(DataType) ⊇ [:parameters]
+	@test fieldnames(Union) ⊇ [:a, :b]
+	@test fieldnames(UnionAll) ⊇ [:body, :var]
+	@test subtypes(Type) ⊆ [Core.TypeofBottom, DataType, Union, UnionAll]
+
+	@test Base.VecOrMat isa UnionAll
+	@test Base.VecOrMat{Any} isa Union
+	@test Base.VecOrMat{Any}.a isa DataType
+	@test Base.VecOrMat{Any}.b isa DataType
+	@test Core.BuiltinInts isa Union
+	@test Core.BuiltinInts.a isa DataType
+	@test Core.BuiltinInts.b isa Union
+	@test Vector isa UnionAll
+	@test Vector.body isa DataType
+	@test Vector.body.parameters isa Core.SimpleVector
+	@test Vector{Any} isa DataType
 end
 
 @testset "Base" begin
@@ -81,7 +102,11 @@ end
 	@test_throws UndefVarError USet
 	@test_throws UndefVarError VecOrTup
 	@test_throws UndefVarError VTuple
+	@test_throws UndefVarError VTuple0
 	@test_throws UndefVarError VTuple1
+	@test_throws UndefVarError VTuple2
+	@test_throws UndefVarError VTuple3
+	@test_throws UndefVarError VType
 
 	# Function
 	@test_throws LoadError @eval @catch
@@ -109,6 +134,7 @@ end
 	# Reexport
 	@test_throws LoadError @eval @spawn
 	@test_throws LoadError @eval @threads
+	@test_throws UndefVarError Bottom
 	@test_throws UndefVarError Fix1
 	@test_throws UndefVarError Fix2
 	@test_throws UndefVarError freeze
@@ -119,29 +145,57 @@ end
 	@test_throws UndefVarError OrderedDict
 	@test_throws UndefVarError OrderedSet
 	@test_throws UndefVarError return_types
+	@test_throws UndefVarError TypeofBottom
+	@test_throws UndefVarError TypeofVararg
 
 	@test_throws MethodError (>, <)(0)
 	@test_throws MethodError (sin, cos)(0)
+	@test_throws MethodError [Base.VecOrMat...]
+	@test_throws MethodError [Core.BuiltinInts...]
+	@test_throws MethodError [NTuple{3, Int}...]
+	@test_throws MethodError [Tuple...]
+	@test_throws MethodError [Union...]
+	@test_throws MethodError [Union{}...]
 	@test_throws MethodError collect(isodd, 1:3)
 	@test_throws MethodError collect(isodd, i for i ∈ 1:3)
+	@test_throws MethodError collect(Tuple{})
 	@test_throws MethodError convert(Set, 1:3)
 	@test_throws MethodError convert(Set{Int}, 1:3)
 	@test_throws MethodError log10(11, 2)
 	@test_throws MethodError ntuple(2, 1)
 	@test_throws MethodError repr([:a, 1]')
+	a_unionall = Union{Vector{T}, Matrix{T}, Array{T, 3}} where T
 	a2_missing = Array{Missing, 2}(undef, Tuple(rand(0:9, 2)))
 	a3_nothing = Array{Nothing, 3}(undef, Tuple(rand(0:9, 3)))
 	using Exts
 
+	@test (>, <)(0) === (>(0), <(0))
 	@test (>, <)(0) isa NTuple{2, Fix2{<:Function, Int}}
-	@test (sin, cos)(0) === sincos(0)
+	@test (sin, cos)(0) === sincos(0) === (0.0, 1.0)
 	@test [:_ -1] == [:_, -1]'
 	@test [:p :q] == [:p, :q]'
 	@test ['1' '2'] == ['1', '2']'
 	@test ["x" "y"] == ["x", "y"]'
+	@test [a_unionall::UnionAll...] == UnionAll[Vector, Matrix, Array{T, 3} where T]
+	@test [AbstractMatrix...] == [Vector...] == []
+	@test [AbstractMatrix{UInt8}...] == [UInt8, 2]
+	@test [AbstractVecOrMat...] == [AbstractVector, AbstractMatrix]
+	@test [Core.BuiltinInts...] ⊋ [Bool, Int8, Int16, Int32, Int64, Int128]
+	@test [NTuple{3, Int}...] == fill(Int, 3)
+	@test [Tuple...] == [Vararg{Any}]
+	@test [Tuple{}...] == [NTuple...] == []
+	@test [Tuple{Float16, Float32, Float64}...] == [Float16, Float32, Float64]
+	@test [Union{}...] == [Union...] == []
+	@test [Vector{Union{Unsigned, Signed}}...] == [Union{Unsigned, Signed}, 1]
+	@test [VTuple1{Function}...] == [Function, Vararg{Function}]
 	@test all(@. only(ntuple(1, Val(0:9))) === Val(0:9))
-	@test cd(() -> stdpath("../test"), @__DIR__) == "./"
-	@test chomp(readstr(@__FILE__)) == readchomp(@__FILE__)
+	@test allequal(length.([NTuple{0, Type}, collect(Tuple{}), Tuple{}]))
+	@test allequal(length.([NTuple{1, Type}, VTuple0{Type}, VTuple{Type}, Tuple{Type}]))
+	@test allequal(length.([NTuple{2, Type}, VTuple1{Type}]))
+	@test allequal(length.([NTuple{3, Type}, VTuple2{Type}]))
+	@test allequal(length.([NTuple{4, Type}, VTuple3{Type}]))
+	@test cd(() -> stdpath("../test"), @__DIR__) === "./"
+	@test chomp(readstr(@__FILE__)) === readchomp(@__FILE__)
 	@test collect(isodd, i for i ∈ 1:3) == collect(isodd, 1:3) == [1, 3]
 	@test convert(Set{Int}, 1:3) == convert(Set, 1:3) == Set(1:3)
 	@test copy.(ensure_vector(a2_missing)) isa Vector{Vector{Missing}}
@@ -183,6 +237,7 @@ end
 	@test stdpath("..") == "../"
 	@test stdpath(".") == "./"
 	@test stdpath("") == ""
+	@test Tuple === Tuple{Vararg{Any}} === VTuple{Any}
 	@test_throws ArgumentError notmissing(missing)
 	@test_throws ArgumentError notnothing(nothing)
 
@@ -256,16 +311,5 @@ end
 end
 
 @test all(nameof.(last.(Exts.ext(:))) .== first.(Exts.ext(:)))
-@static parse(Bool, get(ENV, "CI", "0")) || cd(@__DIR__) do
-	cp("./Project.toml", "../docs/Project.toml", force = true)
-	fs = [
-		"../README.md"
-		"../docs/src/api.md"
-	]
-	md = join(readstr.(fs), "*"^5 * "\n")
-	md = replace(md, r"^#+\K\s+"m => " ")
-	write("../docs/src/index.md", md)
-
-	include("../docs/make.jl")
-end
+@static parse(Bool, get(ENV, "CI", "0")) || include("docs.jl")
 

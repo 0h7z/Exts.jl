@@ -27,7 +27,7 @@ export UDict
 export USet
 export VecOrTup
 export VTuple
-export VTuple1
+export VType
 
 export @catch
 export @noinfo
@@ -56,12 +56,14 @@ using Reexport: @reexport
 
 @reexport begin
 #! format: noindent
-using Base: Fix1, Fix2
+using Base: Bottom, Fix1, Fix2
 using Base: nonnothingtype, notnothing, return_types
 using Base.Threads: @spawn, @threads, nthreads
+using Core: TypeofBottom, TypeofVararg
 using OrderedCollections: LittleDict, OrderedDict, OrderedSet, freeze
 end
 
+include("BaseExt.jl")
 include("Macro.jl")
 include("Type.jl")
 
@@ -103,7 +105,6 @@ function pause(i::IO, o::IO, msg::Maybe{AbstractString} = nothing)::Nothing
 	print(o, '\n')
 end
 
-include("BaseExt.jl")
 include("Function.jl")
 
 # StatisticsExt

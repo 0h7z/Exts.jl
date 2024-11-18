@@ -22,7 +22,7 @@ using DataFrames: DataFrame
 using Exts: SymOrStr, ensure_vector, lmap
 using FITSIO: FITSIO, FITS, EitherTableHDU
 
-@doc "	FITSIO.EitherTableHDU = Union{ASCIITableHDU, TableHDU}" EitherTableHDU
+@doc "	FITSIO.EitherTableHDU <- Union{ASCIITableHDU, TableHDU}" EitherTableHDU
 
 """
 	read(t::FITSIO.EitherTableHDU, DataFrame,
