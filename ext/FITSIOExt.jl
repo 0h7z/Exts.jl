@@ -20,7 +20,7 @@ module FITSIOExt
 using Base.Threads: @spawn
 using DataFrames: DataFrame
 using Exts: SymOrStr, ensure_vector, lmap
-using FITSIO: FITSIO, FITS, EitherTableHDU
+using FITSIO: FITSIO, CFITSIO, FITS, EitherTableHDU
 
 @doc "	FITSIO.EitherTableHDU <- Union{ASCIITableHDU, TableHDU}" EitherTableHDU
 
@@ -28,13 +28,14 @@ using FITSIO: FITSIO, FITS, EitherTableHDU
 	read(t::FITSIO.EitherTableHDU, DataFrame,
 		colnames = Tables.columnnames(t)) -> DataFrame
 
-Read a DataFrame from the given ASCIITableHDU or TableHDU.
+Read a DataFrame from the given table (of type `ASCIITableHDU` or
+`TableHDU`).
 """
 function Base.read(t::EitherTableHDU, ::Type{DataFrame},
 	colnames::AbstractVector{<:SymOrStr} = FITSIO.Tables.columnnames(t))
 	fits = t.fitsfile
-	f, n = FITSIO.fits_file_name(fits), t.ext
-	if 0 ≠ FITSIO.fits_file_mode(fits) # 0 => read-only, 1 => read-write
+	f, n = CFITSIO.fits_file_name(fits), t.ext
+	if 0 ≠ CFITSIO.fits_file_mode(fits) # 0 => read-only, 1 => read-write
 		throw(ArgumentError("FITS file must be opened in read-only mode"))
 	end
 	cols = map(lmap(String, colnames)) do colname

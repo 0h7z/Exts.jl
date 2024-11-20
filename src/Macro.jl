@@ -39,6 +39,25 @@ for level ∈ ("info", "warn")
 	end
 end
 
+"""
+	@S_str -> Symbol
+
+Create a [`Symbol`](@extref :type:Core.Symbol) from a literal string.
+
+# Examples
+```jldoctest
+julia> S"Julia"
+:Julia
+
+julia> S"\$0 expands to the name of the shell or shell script."
+Symbol("\\\$0 expands to the name of the shell or shell script.")
+```
+"""
+macro S_str(string)
+	:(Symbol($string))
+	# https://man.archlinux.org/man/core/bash/bash.1#Special_Parameters
+end
+
 @eval begin
 	"""
 		@try expr default = nothing

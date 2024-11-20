@@ -32,6 +32,7 @@ export VType
 export @catch
 export @noinfo
 export @nowarn
+export @S_str
 export @try
 export @trycatch
 export ∠

@@ -112,6 +112,7 @@ end
 	@test_throws LoadError @eval @catch
 	@test_throws LoadError @eval @noinfo
 	@test_throws LoadError @eval @nowarn
+	@test_throws LoadError @eval @S_str
 	@test_throws LoadError @eval @try
 	@test_throws LoadError @eval @trycatch
 	@test_throws UndefVarError ∠
@@ -263,6 +264,7 @@ end
 	@test ErrorException("") == @trycatch error()
 	@test isnothing(@catch true)
 	@test isnothing(@try error())
+	@test S":" === :(:)
 	end
 
 	fi, i = mktemp()
@@ -284,7 +286,7 @@ end
 	@test df == read(tmp, DataFrame)
 	@test df == read(tmp, DataFrame, [:x, :y], skipstart = 1)
 	@test df == CSV.read(tmp, DataFrame)
-	@test dropmissing(DataFrame(x = [1, missing])) == DataFrame(x = [1])
+	@test dropmissing(DataFrame(x = [missing, 1])) == DataFrame(x = [1])
 end
 
 @testset "FITSIOExt" begin
