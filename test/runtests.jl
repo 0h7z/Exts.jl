@@ -168,6 +168,7 @@ end
 	a_unionall = Union{Vector{T}, Matrix{T}, Array{T, 3}} where T
 	a2_missing = Array{Missing, 2}(undef, Tuple(rand(0:9, 2)))
 	a3_nothing = Array{Nothing, 3}(undef, Tuple(rand(0:9, 3)))
+	allowed_undefineds = GlobalRef.(Ref(Base), [:active_repl, :active_repl_backend])
 	using Exts
 
 	@test (>, <)(0) === (>(0), <(0))
@@ -210,6 +211,7 @@ end
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
 	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
+	@test isempty(detect_ambiguities(Core, Base, Exts; recursive = true, allowed_undefineds))
 	@test log10(11, 2) isa NTuple{2, Float64}
 	@test Maybe{Missing} == maybe(Missing) == maybe(Missing, Missing)
 	@test Maybe{Nothing} == maybe(Nothing) == maybe() == Nothing
@@ -275,6 +277,16 @@ end
 	end
 	close.((i, o))
 	@test readstr(fo) ≡ "Press any key to continue . . . \n"
+
+	# https://github.com/JuliaCollections/OrderedCollections.jl/pull/120
+	d = ODict(nothing => 0)
+	@test ODict(delete!(d, nothing)...) == ODict()
+	d = ODict(nothing => 1, 2 => 3)
+	@test ODict(delete!(d, nothing)...) == ODict(2 => 3)
+	d = ODict(2 => 0.1, nothing => 0.2, 3 => 0.5)
+	@test ODict(delete!(d, nothing)...) == ODict(2 => 0.1, 3 => 0.5)
+	d = ODict(2 => 0.1, 5 => 0.4, nothing => 0.03, 10 => 0.4)
+	@test ODict(delete!(d, nothing)...) == ODict(2 => 0.1, 5 => 0.4, 10 => 0.4)
 end
 
 @testset "DataFramesExt" begin
@@ -310,6 +322,22 @@ end
 	using StatsBase: mean, weights
 	@test mean(1:20, weights(zeros(20))) |> isnan
 	@test mean(1:20) === nanmean(1:20, weights(zeros(20)))
+end
+
+@testset "YAMLExt" begin
+	using YAML: yaml
+	str = yaml(
+		S"name"     => S"CI",
+		S"on"       => LDict(:workflow_dispatch => nothing),
+		S"defaults" => LDict(:run => Dict(:shell => :bash)),
+		S"env"      => LDict(:JULIA_NUM_THREADS => S"auto"),
+	)
+	@test str === """
+	name: CI
+	on:\n  workflow_dispatch: ~
+	defaults:\n  run:\n    shell: bash
+	env:\n  JULIA_NUM_THREADS: auto
+	"""
 end
 
 @test all(nameof.(last.(Exts.ext(:))) .== first.(Exts.ext(:)))

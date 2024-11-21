@@ -40,6 +40,7 @@ function ext(::Colon)::VTuple{Pair{Symbol, Maybe{Module}}}
 		:DataFrames,
 		:FITSIO,
 		:Statistics,
+		:YAML,
 	)
 	map(x -> Symbol(x, :Ext) => ext(x), xs)
 end
@@ -114,7 +115,7 @@ function isdirpath(path::AbstractString)::Bool
 	Base.isdirpath(path)
 end
 
-@doc """
+"""
 	lmap(f, iterators...)
 
 Create a lazy mapping. This is another syntax for writing `(f(args...) for
@@ -165,7 +166,7 @@ function ∠(azimuth::Real)::Complex{<:AbstractFloat}
 	cispi(azimuth / 180) # 360° = 2π rad
 end
 
-@doc raw"""
+"""
 	readstr(x) -> String
 
 Read the entirety of `x` as a string. Equivalent to `read(x, String)`.

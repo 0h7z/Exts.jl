@@ -25,6 +25,7 @@ end)
 using DataFrames: DataFrames
 using FITSIO: FITSIO
 using StatsBase: StatsBase
+using YAML: YAML
 
 const cache = URL::String -> (URL, HTTP.download(URL * "objects.inv", mktempdir()))
 const entry = ODict{String, String}()

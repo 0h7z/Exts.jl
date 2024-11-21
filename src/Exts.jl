@@ -108,6 +108,9 @@ end
 
 include("Function.jl")
 
+# https://github.com/JuliaCollections/OrderedCollections.jl/pull/120
+include("OrderedCollectionsExt.jl")
+
 # StatisticsExt
 function nanmean end
 
