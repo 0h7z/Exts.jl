@@ -34,7 +34,7 @@ See also [`mean(::AbstractArray)`](@extref Statistics.mean),
 """
 function Exts.nanmean(A::AbstractArray, w::AbstractWeights; dims::Union{Colon, Int} = :)
 	r = mean(A, (w); dims)
-	!isnan(r) ? (r) : (@assert all(iszero, w); mean(A; dims))
+	!isnan(r) ? (r) : (x = mean(A; dims); @assert isnan(x) || all(iszero, w); x)
 end # @doc nanmean
 
 end # module

@@ -15,11 +15,12 @@
 module OrderedCollectionsExt
 
 using Base: isbitsunion, unwrap_unionall
-using OrderedCollections: OrderedCollections, OrderedDict, _tablesz, hashindex, rehash!
+using Exts: ODict
+using OrderedCollections: OrderedCollections, _tablesz, hashindex, rehash!
 
-@static if [unwrap_unionall(methods(rehash!, (OrderedDict, Int))[1].sig)...][3] == Any
+@static if [unwrap_unionall(methods(rehash!, (ODict, Int))[1].sig)...][3] == Any
 #! format: noindent
-function OrderedCollections.rehash!(h::OrderedDict{K, V}, newsz::Integer) where {K, V}
+function OrderedCollections.rehash!(h::ODict{K, V}, newsz::Integer) where {K, V}
 	olds = h.slots
 	keys = h.keys
 	vals = h.vals

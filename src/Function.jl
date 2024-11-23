@@ -53,7 +53,19 @@ function ext(x::Symbol)::Maybe{Module}
 end
 
 """
-	invsqrt(x::T) -> AbstractFloat where T <: Real
+	freeze(d::AbstractDict{K, V}) where {K, V} -> LDict{K, V}
+
+Render a dictionary immutable by converting it to a `Tuple`-backed
+[`LittleDict`](@ref LDict). The `Tuple`-backed `LittleDict` is faster than
+the `Vector`-backed `LittleDict`, particularly when the keys are all
+concretely typed.
+"""
+function freeze(d::AbstractDict{K, V})::FrozenLittleDict{K, V} where {K, V}
+	OrderedCollections.freeze(d)
+end
+
+"""
+	invsqrt(x::T) where T <: Real -> AbstractFloat
 
 Return ``\\sqrt{x^{-1}}``.
 

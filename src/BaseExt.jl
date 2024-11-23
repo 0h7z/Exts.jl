@@ -35,17 +35,13 @@ See [`Base.$($T)`](@extref).
 """ $T
 end
 
-function Base.adjoint(m::T) where T <: AbstractVecOrMat{Any}
-	permutedims(m)::AbstractMatrix{Any}
-end
-function Base.adjoint(m::T) where T <: AbstractVecOrMat{<:Symbol}
-	permutedims(m)::AbstractMatrix{<:Symbol}
-end
-function Base.adjoint(m::T) where T <: AbstractVecOrMat{<:AbstractChar}
-	permutedims(m)::AbstractMatrix{<:AbstractChar}
-end
-function Base.adjoint(m::T) where T <: AbstractVecOrMat{<:AbstractString}
-	permutedims(m)::AbstractMatrix{<:AbstractString}
+let VM = AbstractVecOrMat, M = AbstractMatrix
+#! format: noindent
+@inline Base.adjoint(m::VM{Any})                         = permutedims(m)::M{Any}
+@inline Base.adjoint(m::VM{Regex})                       = permutedims(m)::M{Regex}
+@inline Base.adjoint(m::VM{Symbol})                      = permutedims(m)::M{Symbol}
+@inline Base.adjoint(m::VM{T}) where T <: AbstractChar   = permutedims(m)::M{T}
+@inline Base.adjoint(m::VM{T}) where T <: AbstractString = permutedims(m)::M{T}
 end
 
 function Base.collect(f::Function, collection)
@@ -59,26 +55,27 @@ function Base.convert(::Type{S}, v::AbstractVector) where S <: AbstractSet{T} wh
 	S(T[v;])
 end
 
-let UU = Union{Union, UnionAll}
+let UT = Union{Union, DataType}, UA = UnionAll,
+	UU = Union{Union, UA}, TT = NTuple{2, Type}
 #! format: noindent
-@inline rewrap(r::Type, ::UU)            = r
-@inline unwrap(r::Union)                 = r
-@inline rewrap(T::DataType, U::UnionAll) = rewrap_unionall(T, U)::UnionAll
-@inline unwrap(T::UnionAll)              = unwrap_unionall(T)::Union{Union, DataType}
+@inline rewrap(r::Type, ::UU)          = r
+@inline rewrap(T::DataType, U::UA)::UA = rewrap_unionall(T, U)
+@inline unwrap(r::Union)               = r
+@inline unwrap(T::UA)::UT              = unwrap_unionall(T)
 
 @inline Base.iterate(::TypeofBottom)          = nothing
-@inline Base.iterate(::UnionAll, ::DataType)  = nothing
+@inline Base.iterate(::UA, ::DataType)        = nothing
 @inline Base.iterate(::UU, ::TypeofBottom)    = nothing
 @inline Base.iterate(::UU, T::Type)           = T, Bottom
 @inline Base.iterate(T::DataType, i::Int = 1) = iterate(T.parameters, i)
-@inline Base.iterate(T::UU)                   = iterate(T, unwrap(T))
-@inline Base.iterate(U::UU, T::Union)         = rewrap(T.a, U), rewrap(T.b, U)
+@inline Base.iterate(T::UU)                   = iterate(T, unwrap(T)::UT)
+@inline Base.iterate(U::UU, T::Union)::TT     = rewrap(T.a, U), rewrap(T.b, U)
 end
 
 @inline Base.length(T::DataType) = length(T.parameters)
 
 """
-	log10(x::T, σ::T) -> NTuple{2, AbstractFloat} where T <: Real
+	log10(x::T, σ::T) where T <: Real -> NTuple{2, AbstractFloat}
 
 Compute the logarithm of `x ± σ` to base 10.
 """

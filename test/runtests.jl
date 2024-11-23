@@ -58,6 +58,13 @@ end
 end
 
 @testset "Base" begin
+	using Base: IOError, unwrap_unionall
+	ms = methods(ntuple, (Int, Any), (Base))
+	ts = [unwrap_unionall(m.sig) for m ∈ ms]
+	v1 = ["$(t.parameters[(3)])" for t ∈ ts]
+	v2 = ["$Int", "Integer", "Val{N}", ("Val{$N}" for N ∈ 0:3)...]
+	@test v1 ⊆ v2
+
 	@static if !Sys.iswindows()
 	#! format: noindent
 	@test Bool(0) == Base.isdir("")
@@ -84,7 +91,7 @@ end
 
 	@test joinpath("") == ""
 	@test normpath("") == "." # why?
-	@test_throws Base.IOError realpath("")
+	@test_throws IOError realpath("")
 end
 
 @testset "BaseExt" begin
@@ -120,6 +127,7 @@ end
 	@test_throws UndefVarError dropnothing
 	@test_throws UndefVarError ensure_vector
 	@test_throws UndefVarError flatten
+	@test_throws UndefVarError freeze
 	@test_throws UndefVarError getfirst
 	@test_throws UndefVarError getlast
 	@test_throws UndefVarError invsqrt
@@ -138,7 +146,7 @@ end
 	@test_throws UndefVarError Bottom
 	@test_throws UndefVarError Fix1
 	@test_throws UndefVarError Fix2
-	@test_throws UndefVarError freeze
+	@test_throws UndefVarError FrozenLittleDict
 	@test_throws UndefVarError LittleDict
 	@test_throws UndefVarError nonnothingtype
 	@test_throws UndefVarError notnothing
@@ -148,6 +156,7 @@ end
 	@test_throws UndefVarError return_types
 	@test_throws UndefVarError TypeofBottom
 	@test_throws UndefVarError TypeofVararg
+	@test_throws UndefVarError UnfrozenLittleDict
 
 	@test_throws MethodError (>, <)(0)
 	@test_throws MethodError (sin, cos)(0)
@@ -164,8 +173,13 @@ end
 	@test_throws MethodError convert(Set{Int}, 1:3)
 	@test_throws MethodError log10(11, 2)
 	@test_throws MethodError ntuple(2, 1)
-	@test_throws MethodError repr([:a, 1]')
-	a_unionall = Union{Vector{T}, Matrix{T}, Array{T, 3}} where T
+	@test_throws MethodError sprint(display, [:_, -1]')
+	@test_throws MethodError sprint(display, [:p, :q]')
+	@test_throws MethodError sprint(display, ['1', '2']')
+	@test_throws MethodError sprint(display, ["x", "y"]')
+	@test_throws MethodError sprint(display, [(r"^"), (r"$")]')
+	a_ua_tuple = Tuple{Vector{T}, Matrix{T}, Array{T, 3}} where T
+	a_ua_union = Union{Vector{T}, Matrix{T}, Array{T, 3}} where T
 	a2_missing = Array{Missing, 2}(undef, Tuple(rand(0:9, 2)))
 	a3_nothing = Array{Nothing, 3}(undef, Tuple(rand(0:9, 3)))
 	allowed_undefineds = GlobalRef.(Ref(Base), [:active_repl, :active_repl_backend])
@@ -178,11 +192,13 @@ end
 	@test [:p :q] == [:p, :q]'
 	@test ['1' '2'] == ['1', '2']'
 	@test ["x" "y"] == ["x", "y"]'
-	@test [a_unionall::UnionAll...] == UnionAll[Vector, Matrix, Array{T, 3} where T]
-	@test [AbstractMatrix...] == [Vector...] == []
-	@test [AbstractMatrix{UInt8}...] == [UInt8, 2]
-	@test [AbstractVecOrMat...] == [AbstractVector, AbstractMatrix]
-	@test [Core.BuiltinInts...] ⊋ [Bool, Int8, Int16, Int32, Int64, Int128]
+	@test [(r"^") (r"$")] == [(r"^"), (r"$")]'
+	@test [a_ua_tuple::UnionAll...] == Any[]
+	@test [a_ua_union::UnionAll...] == UnionAll[Vector, Matrix, Array{T, 3} where T]
+	@test [AbstractMatrix...] == [Vector...] == Any[]
+	@test [AbstractMatrix{UInt8}...] == Any[UInt8, 2]
+	@test [AbstractVecOrMat...] == UnionAll[AbstractVector, AbstractMatrix]
+	@test [Core.BuiltinInts...] ⊋ DataType[Bool, Int8, Int16, Int32, Int64, Int128]
 	@test [NTuple{3, Int}...] == fill(Int, 3)
 	@test [Tuple...] == [Vararg{Any}]
 	@test [Tuple{}...] == [NTuple...] == []
@@ -208,6 +224,8 @@ end
 	@test dropnothing(x for x ∈ a3_nothing) == dropnothing(a3_nothing) == []
 	@test ensure_vector(a3_nothing) isa AbstractVector{<:AbstractMatrix{Nothing}}
 	@test flatten(rand(UInt8, 3, 3, 3)::Array{UInt8, 3}) isa Vector{UInt8}
+	@test freeze(Dict(1 => 2)) isa FrozenLittleDict{Int, Int}
+	@test freeze(Dict(1 => 2)) isa LDict{Int, Int}
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
 	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
@@ -243,6 +261,7 @@ end
 	@test Tuple === Tuple{Vararg{Any}} === VTuple{Any}
 	@test_throws ArgumentError notmissing(missing)
 	@test_throws ArgumentError notnothing(nothing)
+	@test_throws MethodError freeze(Dict())
 
 	@test Bool(0) == Exts.isdir("")
 	@test Bool(1) == Exts.isdir(".")
@@ -320,8 +339,12 @@ end
 
 @testset "StatisticsExt" begin
 	using StatsBase: mean, weights
+	F64  = Float64
+	data = F64[1:20-1; NaN]
 	@test mean(1:20, weights(zeros(20))) |> isnan
 	@test mean(1:20) === nanmean(1:20, weights(zeros(20)))
+	@test mean(data) === nanmean(data, weights(zeros(20)))
+	@test mean(data) |> isnan
 end
 
 @testset "YAMLExt" begin

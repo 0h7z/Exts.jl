@@ -40,6 +40,7 @@ export dropmissing
 export dropnothing
 export ensure_vector
 export flatten
+export freeze
 export getfirst
 export getlast
 export invsqrt
@@ -53,6 +54,7 @@ export return_type
 export stdpath
 
 using Logging: Logging
+using OrderedCollections: OrderedCollections
 using Reexport: @reexport
 
 @reexport begin
@@ -61,7 +63,8 @@ using Base: Bottom, Fix1, Fix2
 using Base: nonnothingtype, notnothing, return_types
 using Base.Threads: @spawn, @threads, nthreads
 using Core: TypeofBottom, TypeofVararg
-using OrderedCollections: LittleDict, OrderedDict, OrderedSet, freeze
+using OrderedCollections: FrozenLittleDict, UnfrozenLittleDict
+using OrderedCollections: LittleDict, OrderedDict, OrderedSet
 end
 
 include("BaseExt.jl")
