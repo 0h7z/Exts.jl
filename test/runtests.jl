@@ -171,6 +171,7 @@ end
 	@test_throws MethodError collect(Tuple{})
 	@test_throws MethodError convert(Set, 1:3)
 	@test_throws MethodError convert(Set{Int}, 1:3)
+	@test_throws MethodError first(only(methods(identity)).sig)
 	@test_throws MethodError log10(11, 2)
 	@test_throws MethodError ntuple(2, 1)
 	@test_throws MethodError sprint(display, [:_, -1]')
@@ -193,7 +194,7 @@ end
 	@test ['1' '2'] == ['1', '2']'
 	@test ["x" "y"] == ["x", "y"]'
 	@test [(r"^") (r"$")] == [(r"^"), (r"$")]'
-	@test [a_ua_tuple::UnionAll...] == Any[]
+	@test [a_ua_tuple::UnionAll...] == UnionAll[Vector, Matrix, Array{T, 3} where T]
 	@test [a_ua_union::UnionAll...] == UnionAll[Vector, Matrix, Array{T, 3} where T]
 	@test [AbstractMatrix...] == [Vector...] == Any[]
 	@test [AbstractMatrix{UInt8}...] == Any[UInt8, 2]
@@ -224,8 +225,9 @@ end
 	@test dropnothing(x for x ∈ a3_nothing) == dropnothing(a3_nothing) == []
 	@test ensure_vector(a3_nothing) isa AbstractVector{<:AbstractMatrix{Nothing}}
 	@test flatten(rand(UInt8, 3, 3, 3)::Array{UInt8, 3}) isa Vector{UInt8}
-	@test freeze(Dict(1 => 2)) isa FrozenLittleDict{Int, Int}
-	@test freeze(Dict(1 => 2)) isa LDict{Int, Int}
+	@test freeze(ODict(1 => 0)) isa LDict{Int, Int}
+	@test freeze(ODict{Maybe{UInt}, Datum{Int}}(1 => 10)) isa LDict{UInt, Int}
+	@test freeze(ODict{Maybe{UInt}, Datum{Int}}(1 => missing)) isa LDict{UInt, Missing}
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
 	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
@@ -252,16 +254,24 @@ end
 	@test polar(1, 180) === ∠(180) == -(1.0)
 	@test polar(1, 360) === ∠(000) == +(1.0)
 	@test polar(1, rad2deg(1)) === ∠(rad2deg(1)) === Exts.cis(1)
-	@test return_type(invsqrt, ntuple(1, Any)) == AbstractFloat
+	@test return_type(invsqrt, (Any,)) == AbstractFloat
+	@test return_type(iterate, (DataType, Int)) == Maybe{Tuple{Any, Int}}
+	@test return_type(iterate, (TypeofBottom,)) == Nothing
+	@test return_type(iterate, (Union, DataType)) == Tuple{DataType, TypeofBottom}
+	@test return_type(iterate, (Union, TypeofBottom)) == Nothing
+	@test return_type(iterate, (Union, Union)) == NTuple{2, Type}
+	@test return_type(iterate, (Union, UnionAll)) == Tuple{UnionAll, TypeofBottom}
+	@test return_type(iterate, (UnionAll, Type{Any})) == Nothing
+	@test return_type(iterate, (UnionAll, TypeofBottom)) == Nothing
 	@test return_type(log10, ntuple(2, Any)) == NTuple{2, AbstractFloat}
 	@test stdpath("...") == "..."
 	@test stdpath("..") == "../"
 	@test stdpath(".") == "./"
 	@test stdpath("") == ""
 	@test Tuple === Tuple{Vararg{Any}} === VTuple{Any}
+	@test typeof(identity) === first(only(methods(identity)).sig)
 	@test_throws ArgumentError notmissing(missing)
 	@test_throws ArgumentError notnothing(nothing)
-	@test_throws MethodError freeze(Dict())
 
 	@test Bool(0) == Exts.isdir("")
 	@test Bool(1) == Exts.isdir(".")
@@ -286,6 +296,14 @@ end
 	@test isnothing(@catch true)
 	@test isnothing(@try error())
 	@test S":" === :(:)
+	end
+
+	@static if VERSION < v"1.10"
+		@test freeze(Dict()) isa LittleDict{Bottom, Bottom}
+		@test return_type(freeze, (Any,)) == LittleDict
+	else
+		@test return_type(freeze, (Any,)) == FrozenLittleDict
+		@test_throws MethodError freeze(Dict())
 	end
 
 	fi, i = mktemp()

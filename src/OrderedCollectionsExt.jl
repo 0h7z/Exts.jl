@@ -14,11 +14,12 @@
 
 module OrderedCollectionsExt
 
-using Base: isbitsunion, unwrap_unionall
+using Base: isbitsunion
 using Exts: ODict
 using OrderedCollections: OrderedCollections, _tablesz, hashindex, rehash!
 
-@static if [unwrap_unionall(methods(rehash!, (ODict, Int))[1].sig)...][3] == Any
+# COV_EXCL_START
+@static if [only(methods(rehash!, (ODict, Int))).sig...][3] == Any
 #! format: noindent
 function OrderedCollections.rehash!(h::ODict{K, V}, newsz::Integer) where {K, V}
 	olds = h.slots
@@ -63,11 +64,9 @@ function OrderedCollections.rehash!(h::ODict{K, V}, newsz::Integer) where {K, V}
 				end
 				if !isdeleted
 					index0 = index = (hashk & (newsz - 1)) + 1
-					# COV_EXCL_START
 					while slots[index] != 0
 						index = (index & (newsz - 1)) + 1
 					end
-					# COV_EXCL_STOP
 					probe = (index - index0) & (newsz - 1)
 					probe > maxprobe && (maxprobe = probe)
 					slots[index] = to
@@ -76,7 +75,7 @@ function OrderedCollections.rehash!(h::ODict{K, V}, newsz::Integer) where {K, V}
 					to += 1
 				end
 				if h.ndel != ndel0
-					return rehash!(h, newsz) # COV_EXCL_LINE
+					return rehash!(h, newsz)
 				end
 			end
 		end
@@ -87,16 +86,14 @@ function OrderedCollections.rehash!(h::ODict{K, V}, newsz::Integer) where {K, V}
 		@inbounds for i ∈ 1:count0
 			k = keys[i]
 			index0 = index = hashindex(k, newsz)
-			# COV_EXCL_START
 			while slots[index] != 0
 				index = (index & (newsz - 1)) + 1
 			end
-			# COV_EXCL_STOP
 			probe = (index - index0) & (newsz - 1)
 			probe > maxprobe && (maxprobe = probe)
 			slots[index] = i
 			if h.ndel > 0
-				return rehash!(h, newsz) # COV_EXCL_LINE
+				return rehash!(h, newsz)
 			end
 		end
 	end
@@ -105,6 +102,7 @@ function OrderedCollections.rehash!(h::ODict{K, V}, newsz::Integer) where {K, V}
 	return h
 end
 end
+# COV_EXCL_STOP
 
 end # module
 

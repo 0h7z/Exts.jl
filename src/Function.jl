@@ -53,15 +53,15 @@ function ext(x::Symbol)::Maybe{Module}
 end
 
 """
-	freeze(d::AbstractDict{K, V}) where {K, V} -> LDict{K, V}
+	freeze(d::AbstractDict{K, V}) where {K, V} -> LDict{<:K, <:V}
 
 Render a dictionary immutable by converting it to a `Tuple`-backed
 [`LittleDict`](@ref LDict). The `Tuple`-backed `LittleDict` is faster than
 the `Vector`-backed `LittleDict`, particularly when the keys are all
 concretely typed.
 """
-function freeze(d::AbstractDict{K, V})::FrozenLittleDict{K, V} where {K, V}
-	OrderedCollections.freeze(d)
+function freeze(d::AbstractDict{K, V})::AbstractDict where {K, V}
+	OrderedCollections.freeze(d)::FrozenLittleDict{<:K, <:V}
 end
 
 """

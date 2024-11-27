@@ -58,17 +58,22 @@ end
 let UT = Union{Union, DataType}, UA = UnionAll,
 	UU = Union{Union, UA}, TT = NTuple{2, Type}
 #! format: noindent
-@inline rewrap(r::Type, ::UU)          = r
-@inline rewrap(T::DataType, U::UA)::UA = rewrap_unionall(T, U)
-@inline unwrap(r::Union)               = r
-@inline unwrap(T::UA)::UT              = unwrap_unionall(T)
+@inline iter_t(U::UA, T::Type, ::Nothing) = nothing
+@inline iter_t(U::UA, T::Type, x::Tuple)  = rewrap(x[1], U)::Any, (T, x[2]::Int)
+@inline rewrap(r::Any, ::UU)              = r
+@inline rewrap(T::DataType, U::UA)::Type  = rewrap_unionall(T, U)
+@inline unwrap(r::Union)                  = r
+@inline unwrap(T::UA)::UT                 = unwrap_unionall(T)
 
 @inline Base.iterate(::TypeofBottom)          = nothing
 @inline Base.iterate(::UA, ::DataType)        = nothing
+@inline Base.iterate(::UA, ::TypeofBottom)    = nothing # fix ambiguity on v1.9
 @inline Base.iterate(::UU, ::TypeofBottom)    = nothing
 @inline Base.iterate(::UU, T::Type)           = T, Bottom
 @inline Base.iterate(T::DataType, i::Int = 1) = iterate(T.parameters, i)
 @inline Base.iterate(T::UU)                   = iterate(T, unwrap(T)::UT)
+@inline Base.iterate(U::UA, T::Type{<:Tuple}) = iter_t(U, T, iterate(T))
+@inline Base.iterate(U::UA, x::Tuple)         = iter_t(U, x[1], iterate(x[1], x[2]))
 @inline Base.iterate(U::UU, T::Union)::TT     = rewrap(T.a, U), rewrap(T.b, U)
 end
 
