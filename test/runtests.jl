@@ -1,4 +1,4 @@
-# Copyright (C) 2022-2024 Heptazhou <zhou@0h7z.com>
+# Copyright (C) 2022-2025 Heptazhou <zhou@0h7z.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -62,7 +62,7 @@ end
 	ms = methods(ntuple, (Int, Any), (Base))
 	ts = [unwrap_unionall(m.sig) for m ∈ ms]
 	v1 = ["$(t.parameters[(3)])" for t ∈ ts]
-	v2 = ["$Int", "Integer", "Val{N}", ("Val{$N}" for N ∈ 0:3)...]
+	v2 = ["$Int", "Integer", ("Val{$N}" for N ∈ [0:3; :N])...]
 	@test v1 ⊆ v2
 
 	@static if !Sys.iswindows()
@@ -128,6 +128,7 @@ end
 	@test_throws UndefVarError ensure_vector
 	@test_throws UndefVarError flatten
 	@test_throws UndefVarError freeze
+	@test_throws UndefVarError getall
 	@test_throws UndefVarError getfirst
 	@test_throws UndefVarError getlast
 	@test_throws UndefVarError invsqrt
@@ -228,6 +229,7 @@ end
 	@test freeze(ODict(1 => 0)) isa LDict{Int, Int}
 	@test freeze(ODict{Maybe{UInt}, Datum{Int}}(1 => 10)) isa LDict{UInt, Int}
 	@test freeze(ODict{Maybe{UInt}, Datum{Int}}(1 => missing)) isa LDict{UInt, Missing}
+	@test getall(iseven, 1:9) == getall(iseven)(1:9) == [2, 4, 6, 8]
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
 	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
@@ -287,6 +289,14 @@ end
 	@test Bool(0) == Exts.isdirpath("/...")
 	@test Bool(1) == Exts.isdirpath("/.../")
 
+	@test collect(Exts.walkdir(" ")) == collect(Exts.walkdir("")) == []
+	@test collect(Exts.walkdir("."))[1][1] == "./"
+	@test collect(Exts.walkdir("."))[1][2] == filter!(isdir, readdir())
+	@test collect(Exts.walkdir("."))[1][3] == filter!(isfile, readdir())
+	@test getindex.(Exts.walkdir(), 1) == getindex.(Base.walkdir(pwd()), 1) .|> stdpath
+	@test getindex.(Exts.walkdir(), 2) == getindex.(Base.walkdir(pwd()), 2)
+	@test getindex.(Exts.walkdir(), 3) == getindex.(Base.walkdir(pwd()), 3)
+
 	@eval begin
 	#! format: noindent
 	@test @try error() true
@@ -314,16 +324,6 @@ end
 	end
 	close.((i, o))
 	@test readstr(fo) ≡ "Press any key to continue . . . \n"
-
-	# https://github.com/JuliaCollections/OrderedCollections.jl/pull/120
-	d = ODict(nothing => 0)
-	@test ODict(delete!(d, nothing)...) == ODict()
-	d = ODict(nothing => 1, 2 => 3)
-	@test ODict(delete!(d, nothing)...) == ODict(2 => 3)
-	d = ODict(2 => 0.1, nothing => 0.2, 3 => 0.5)
-	@test ODict(delete!(d, nothing)...) == ODict(2 => 0.1, 3 => 0.5)
-	d = ODict(2 => 0.1, 5 => 0.4, nothing => 0.03, 10 => 0.4)
-	@test ODict(delete!(d, nothing)...) == ODict(2 => 0.1, 5 => 0.4, 10 => 0.4)
 end
 
 @testset "DataFramesExt" begin
@@ -353,6 +353,15 @@ end
 			read(f["SPALL"], DataFrame)), tmp, "r+")
 	FITS(f -> @test_nowarn(
 			read(f["SPALL"], DataFrame)), tmp, "r")
+end
+
+@testset "PkgExt" begin
+	load_path = copy(LOAD_PATH)
+	Exts.with_temp_env() do
+		@test isnothing(Base.active_project())
+		@test LOAD_PATH == ["@", "@stdlib"]
+	end
+	@test LOAD_PATH == load_path
 end
 
 @testset "StatisticsExt" begin

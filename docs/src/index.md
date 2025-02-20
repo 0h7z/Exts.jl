@@ -13,10 +13,11 @@ pkg> add Exts
 julia> using Exts
 
 julia> ODict(Exts.ext(:)) # to see which extensions are loaded
-OrderedDict{Symbol, Union{Nothing, Module}} with 5 entries:
+OrderedDict{Symbol, Union{Nothing, Module}} with 6 entries:
   :BaseExt       => Exts.BaseExt
   :DataFramesExt => DataFramesExt
   :FITSIOExt     => FITSIOExt
+  :PkgExt        => PkgExt
   :StatisticsExt => StatisticsExt
   :YAMLExt       => YAMLExt
 ```

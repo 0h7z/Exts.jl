@@ -34,10 +34,12 @@ jobs:
           - "pre"
           - "1.11-nightly"
           - "1.12-nightly"
+          - "1.13-nightly"
         include:
           - { experimental: false }
           - { experimental: true, julia-version: "1.11-nightly" }
           - { experimental: true, julia-version: "1.12-nightly" }
+          - { experimental: true, julia-version: "1.13-nightly" }
     steps:
       - uses: actions/checkout@v4
         with:

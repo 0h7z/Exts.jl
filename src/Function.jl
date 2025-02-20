@@ -1,4 +1,4 @@
-# Copyright (C) 2023-2024 Heptazhou <zhou@0h7z.com>
+# Copyright (C) 2023-2025 Heptazhou <zhou@0h7z.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -39,6 +39,7 @@ function ext(::Colon)::VTuple{Pair{Symbol, Maybe{Module}}}
 		:Base,
 		:DataFrames,
 		:FITSIO,
+		:Pkg,
 		:Statistics,
 		:YAML,
 	)
@@ -62,6 +63,7 @@ concretely typed.
 """
 function freeze(d::AbstractDict{K, V})::AbstractDict where {K, V}
 	OrderedCollections.freeze(d)::FrozenLittleDict{<:K, <:V}
+	# https://github.com/JuliaCollections/OrderedCollections.jl/blob/master/src/little_dict.jl
 end
 
 """
@@ -217,5 +219,58 @@ function stdpath(path::AbstractString, paths::AbstractString...; real::Bool = fa
 	p = !a ? relpath(p) : p
 	p = slash(p)
 	p = !d || endswith(p, '/') ? p : p * '/'
+end
+
+"""
+	Exts.walkdir(path = pwd(); topdown = true)
+
+Return an iterator that walks the directory tree of a directory.
+
+The iterator returns a tuple containing `(path, dirs, files)`. Each iteration
+`path` will change to the next directory in the tree; then `dirs` and `files`
+will be vectors containing the directories and files in the current `path`
+directory. The directory tree can be traversed top-down or bottom-up. The
+returned iterator is stateful so when accessed repeatedly each access will
+resume where the last left off, like [`Iterators.Stateful`](@extref
+Base.Iterators.Stateful).
+
+See also: [`readdir`](@extref Base.Filesystem.readdir),
+[`Base.walkdir`](@extref Base.Filesystem.walkdir).
+
+# Examples
+```julia
+for (path, ds, fs) ∈ Exts.walkdir(".")
+	println("Directories in \$path")
+	for d ∈ ds
+		println(path / d) # path to directories
+	end
+	println("Files in \$path")
+	for f ∈ fs
+		println(path / f) # path to files
+	end
+end
+```
+"""
+function walkdir(path = pwd(); topdown::Bool = true)
+	_readdir = @static VERSION ≥ v"1.11" ? Base.Filesystem._readdirx : readdir
+	function _walk(ch::Channel, pf::String)
+		ds = String[]
+		fs = String[]
+		xs = @try _readdir(pf) return
+		for x ∈ xs
+			push!(Base.isdir(x) ? ds : fs, @static VERSION ≥ v"1.11" ? x.name : x)
+		end
+		topdown && push!(ch, (pf, ds, fs))
+		# LCOV_EXCL_START
+		for d ∈ ds
+			_walk(ch, stdpath(pf, d))
+		end
+		# LCOV_EXCL_STOP
+		topdown || push!(ch, (pf, ds, fs))
+		nothing
+	end
+	Channel{Tuple{String, Vararg{Vector{String}, 2}}}() do chnl
+		_walk(chnl, stdpath(path))
+	end
 end
 

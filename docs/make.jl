@@ -1,4 +1,4 @@
-# Copyright (C) 2022-2024 Heptazhou <zhou@0h7z.com>
+# Copyright (C) 2022-2025 Heptazhou <zhou@0h7z.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -15,7 +15,7 @@
 using Documenter: Documenter, DocMeta
 using DocumenterInterLinks: InterLinks
 using Exts
-using HTTP: HTTP
+using HTTP: download
 
 DocMeta.setdocmeta!(Exts, :DocTestSetup, quote
 #! format: noindent
@@ -27,9 +27,9 @@ using FITSIO: FITSIO
 using StatsBase: StatsBase
 using YAML: YAML
 
-const cache = URL::String -> (URL, HTTP.download(URL * "objects.inv", mktempdir()))
+const cache = URL::String -> (URL, @noinfo download(URL * "objects.inv", mktempdir()))
 const entry = ODict{String, String}()
-const extra = Vector{Module}()
+const extra = Module[]
 const links = InterLinks(
 	"Julia" => cache("https://docs.julialang.org/en/v1/"),
 )

@@ -1,4 +1,4 @@
-# Copyright (C) 2023-2024 Heptazhou <zhou@0h7z.com>
+# Copyright (C) 2023-2025 Heptazhou <zhou@0h7z.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -41,6 +41,7 @@ export dropnothing
 export ensure_vector
 export flatten
 export freeze
+export getall
 export getfirst
 export getlast
 export invsqrt
@@ -86,11 +87,14 @@ ensure_vector(v::AbstractVector) = v
 
 flatten(itr) = collect(Iterators.flatten(itr))
 
+getall(predicate::Function, A) = A[findall(predicate, A)]
+getall(predicate::Function) = Fix1(getall, predicate)
+
 getfirst(predicate::Function, A) = A[findfirst(predicate, A)]
-getfirst(predicate::Function)    = Base.Fix1(getfirst, predicate)
+getfirst(predicate::Function) = Fix1(getfirst, predicate)
 
 getlast(predicate::Function, A) = A[findlast(predicate, A)]
-getlast(predicate::Function)    = Base.Fix1(getlast, predicate)
+getlast(predicate::Function) = Fix1(getlast, predicate)
 
 return_type(xs...; kw...) = only(return_types(xs...; kw...)::Vector)
 
@@ -111,8 +115,8 @@ end
 
 include("Function.jl")
 
-# https://github.com/JuliaCollections/OrderedCollections.jl/pull/120
-include("OrderedCollectionsExt.jl")
+# PkgExt
+function with_temp_env end
 
 # StatisticsExt
 function nanmean end

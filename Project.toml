@@ -1,7 +1,7 @@
 name = "Exts"
 uuid = "0b12d779-4123-4875-9d6c-e33c2e29e2c9"
 authors = ["Heptazhou <zhou at 0h7z dot com>"]
-version = "0.2.7"
+version = "0.2.8"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -13,6 +13,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 CFITSIO = "3b1b4be9-1499-4b22-8d78-7db3344d1961"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
 FITSIO = "525bcba6-941b-5504-bd06-fd0dc1a4d2eb"
+Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
@@ -20,11 +21,12 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 [extensions]
 DataFramesExt = "DataFrames"
 FITSIOExt = ["DataFrames", "FITSIO"]
+PkgExt = "Pkg"
 StatisticsExt = "StatsBase"
 YAMLExt = "YAML"
 
 [compat]
 CFITSIO = "≥ 1.4.2"
 FITSIO = "≥ 0.17.2"
-OrderedCollections = "≥ 1.5"
+OrderedCollections = "≥ 1.7"
 julia = "≥ 1.9"
