@@ -16,9 +16,9 @@
 	PkgExt
 """
 module PkgExt
+@nospecialize
 
 using Exts: Exts
-using Pkg: Pkg
 
 """
 	Exts.with_temp_env(f::Function)
@@ -26,8 +26,9 @@ using Pkg: Pkg
 Equivalent to `Pkg.Operations.with_temp_env(f, "@stdlib")`.
 """
 function Exts.with_temp_env(f::Function)
-	@inline
-	Pkg.Operations.with_temp_env(f, "@stdlib")
+	@noinline
+	@isdefined(Pkg) || @eval using Pkg: Pkg
+	@eval Pkg.Operations.with_temp_env($f, "@stdlib")
 end
 
 end

@@ -16,6 +16,7 @@
 	StatisticsExt
 """
 module StatisticsExt
+@nospecialize
 
 using Exts: Exts
 using StatsBase: AbstractWeights

@@ -16,6 +16,7 @@
 	FITSIOExt
 """
 module FITSIOExt
+@nospecialize
 
 using Base.Threads: @spawn
 using DataFrames: DataFrame

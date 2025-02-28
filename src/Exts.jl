@@ -13,6 +13,7 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 module Exts
+@nospecialize
 
 export datum
 export Datum
@@ -30,6 +31,7 @@ export VTuple
 export VType
 
 export @catch
+export @disp
 export @noinfo
 export @nowarn
 export @S_str
@@ -74,6 +76,9 @@ include("Type.jl")
 
 (fs::VTuple1{Function})(xs...; kw...) = ((f(xs...; kw...) for f ∈ fs)...,)
 
+disp(io::IO, x)::Nothing = (show(io, MIME("text/plain"), x); println(io))
+disp(x)::Nothing         = (disp(stdout, x))
+
 dropmissing(itr) = collect(skipmissing(itr))
 dropnothing(itr) = dropnothing(collect(itr))
 dropnothing(itr::AbstractArray) = begin
@@ -96,7 +101,7 @@ getfirst(predicate::Function) = Fix1(getfirst, predicate)
 getlast(predicate::Function, A) = A[findlast(predicate, A)]
 getlast(predicate::Function) = Fix1(getlast, predicate)
 
-return_type(xs...; kw...) = only(return_types(xs...; kw...)::Vector)
+return_type(xs...; kw...) = only(unique!(return_types(xs...; kw...)::Vector))
 
 slash(x::AbstractString)::String = replace(x, '\\' => '/')
 
@@ -117,6 +122,9 @@ include("Function.jl")
 
 # PkgExt
 function with_temp_env end
+
+# PythonCallExt
+function Jl end
 
 # StatisticsExt
 function nanmean end

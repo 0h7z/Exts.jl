@@ -21,8 +21,8 @@ using InteractiveUtils: subtypes
 using Test
 
 @testset "Pkg" begin
-	using Pkg: Pkg, PlatformEngines
-	@test getfield.(Pkg.Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
+	using Pkg: PlatformEngines, Registry
+	@test getfield.(Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
 	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z()))
 	# https://github.com/ip7z/7zip/blob/main/CPP/7zip/UI/Console/Main.cpp
 	# https://github.com/mcmilk/7-Zip/blob/master/CPP/7zip/UI/Console/Main.cpp
@@ -40,6 +40,7 @@ end
 	@test 24 <= length(v)
 	@test all(@. float(v) <: AbstractFloat)
 	@test fieldnames(DataType) ⊇ [:parameters]
+	@test fieldnames(Expr) ⊇ [:head, :args]
 	@test fieldnames(Union) ⊇ [:a, :b]
 	@test fieldnames(UnionAll) ⊇ [:body, :var]
 	@test subtypes(Type) ⊆ [Core.TypeofBottom, DataType, Union, UnionAll]
@@ -64,6 +65,14 @@ end
 	v1 = ["$(t.parameters[(3)])" for t ∈ ts]
 	v2 = ["$Int", "Integer", ("Val{$N}" for N ∈ [0:3; :N])...]
 	@test v1 ⊆ v2
+
+	project  = ["Julia", ""] .* "Project"
+	manifest = ["Julia", ""] .* "Manifest"
+	@static if VERSION ≥ v"1.10.8"
+		manifest = manifest .* ["-v1.$(VERSION.minor)" ""]
+	end
+	@test Base.project_names ≡ (project .* ".toml"...,)
+	@test Base.manifest_names ≡ (manifest .* ".toml"...,)
 
 	@static if !Sys.iswindows()
 	#! format: noindent
@@ -117,6 +126,7 @@ end
 
 	# Function
 	@test_throws LoadError @eval @catch
+	@test_throws LoadError @eval @disp
 	@test_throws LoadError @eval @noinfo
 	@test_throws LoadError @eval @nowarn
 	@test_throws LoadError @eval @S_str
@@ -175,17 +185,24 @@ end
 	@test_throws MethodError first(only(methods(identity)).sig)
 	@test_throws MethodError log10(11, 2)
 	@test_throws MethodError ntuple(2, 1)
-	@test_throws MethodError sprint(display, [:_, -1]')
-	@test_throws MethodError sprint(display, [:p, :q]')
-	@test_throws MethodError sprint(display, ['1', '2']')
-	@test_throws MethodError sprint(display, ["x", "y"]')
-	@test_throws MethodError sprint(display, [(r"^"), (r"$")]')
+	@test_throws MethodError repr.(@__MODULE__)
+	@test_throws MethodError repr.(MIME("text/plain"))
+	@test_throws MethodError repr.(TextDisplay(devnull))
+	@test_throws MethodError repr("text/plain", [:_, -1]')
+	@test_throws MethodError repr("text/plain", [:p, :q]')
+	@test_throws MethodError repr("text/plain", ['1', '2']')
+	@test_throws MethodError repr("text/plain", ["x", "y"]')
+	@test_throws MethodError repr("text/plain", [r"^", r"$"]')
 	a_ua_tuple = Tuple{Vector{T}, Matrix{T}, Array{T, 3}} where T
 	a_ua_union = Union{Vector{T}, Matrix{T}, Array{T, 3}} where T
 	a2_missing = Array{Missing, 2}(undef, Tuple(rand(0:9, 2)))
 	a3_nothing = Array{Nothing, 3}(undef, Tuple(rand(0:9, 3)))
-	allowed_undefineds = GlobalRef.(Ref(Base), [:active_repl, :active_repl_backend])
 	using Exts
+
+	allowed_undefineds = [
+		GlobalRef.(Base, [:active_repl, :active_repl_backend])
+		GlobalRef.(Base.MainInclude, [:Distributed, :InteractiveUtils])
+	]
 
 	@test (>, <)(0) === (>(0), <(0))
 	@test (>, <)(0) isa NTuple{2, Fix2{<:Function, Int}}
@@ -256,6 +273,9 @@ end
 	@test polar(1, 180) === ∠(180) == -(1.0)
 	@test polar(1, 360) === ∠(000) == +(1.0)
 	@test polar(1, rad2deg(1)) === ∠(rad2deg(1)) === Exts.cis(1)
+	@test repr.(@__MODULE__) === "Main"
+	@test repr.(MIME("text/plain")) === "MIME type text/plain"
+	@test repr.(TextDisplay(devnull)) === "TextDisplay(Base.DevNull())"
 	@test return_type(invsqrt, (Any,)) == AbstractFloat
 	@test return_type(iterate, (DataType, Int)) == Maybe{Tuple{Any, Int}}
 	@test return_type(iterate, (TypeofBottom,)) == Nothing
@@ -320,10 +340,14 @@ end
 	fo, o = mktemp()
 	redirect_stdio(stdin = i, stdout = o) do
 		write(stdin, '\n'), seekstart(stdin)
-		pause()
+		pause(post = 1)
+		@eval @test isnothing(@disp VERSION)
 	end
 	close.((i, o))
-	@test readstr(fo) ≡ "Press any key to continue . . . \n"
+	@test readstr(fo) ≡ """
+	Press any key to continue . . . \n
+	v"$VERSION"
+	"""
 end
 
 @testset "DataFramesExt" begin
@@ -356,12 +380,14 @@ end
 end
 
 @testset "PkgExt" begin
+	@test !isdefined(Exts.ext(:Pkg), :Pkg)
 	load_path = copy(LOAD_PATH)
 	Exts.with_temp_env() do
 		@test isnothing(Base.active_project())
 		@test LOAD_PATH == ["@", "@stdlib"]
 	end
 	@test LOAD_PATH == load_path
+	@test isdefined(Exts.ext(:Pkg), :Pkg)
 end
 
 @testset "StatisticsExt" begin

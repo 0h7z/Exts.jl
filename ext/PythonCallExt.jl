@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Heptazhou <zhou@0h7z.com>
+# Copyright (C) 2025 Heptazhou <zhou@0h7z.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -13,22 +13,18 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-	YAMLExt
+	PythonCallExt
 """
-module YAMLExt
+module PythonCallExt
 @nospecialize
 
-using Exts: lmap
-using YAML: YAML, yaml
+using Exts: Exts
+using PythonCall: Py, pyconvert
 
-"""
-	yaml(data...; delim = "") -> String
-
-Return a YAML-formatted string of the `data`.
-"""
-function YAML.yaml(xs...; delim = "")::String
-	join(lmap(yaml, xs), delim)
-end
+# LCOV_EXCL_START
+Exts.Jl(x::Any) = x
+Exts.Jl(x::Py)  = pyconvert(Any, x)
+# LCOV_EXCL_STOP
 
 end
 

@@ -16,6 +16,7 @@
 	DataFramesExt
 """
 module DataFramesExt
+@nospecialize
 
 using DataFrames: DataFrames, AbstractDataFrame, DataFrame
 using DelimitedFiles: readdlm, writedlm

@@ -29,7 +29,10 @@ julia> -1 != -Base.cis(2π) != Base.cis(-π) != Base.cis(π)
 true
 ```
 """
-cis(theta::Real)::Complex{<:AbstractFloat} = cispi(theta / π)
+function cis(theta::Real)::Complex{<:AbstractFloat}
+	@specialize
+	cispi(theta / π)
+end
 
 """
 	Exts.ext(::Colon) -> VTuple{Pair{Symbol, Maybe{Module}}}
@@ -80,6 +83,7 @@ julia> invsqrt(4)
 ```
 """
 function invsqrt(x::T)::AbstractFloat where T <: Real
+	@specialize
 	F::Type = float(T)
 	F(sqrt(inv(big(x))))::F
 end
@@ -167,6 +171,7 @@ Return ``r∠θ``, where ``θ`` is in degrees. Equivalent to `radius∠(azimuth)
 See also [`∠`](@ref).
 """
 function polar(radius::Real, azimuth::Real)::Complex{<:AbstractFloat}
+	@specialize
 	cispi(azimuth / 180) * radius
 end
 """
@@ -177,6 +182,7 @@ Return ``1∠θ``, where ``θ`` is in degrees. Equivalent to `polar(1, azimuth)`
 See also [`polar`](@ref), [`Exts.cis`](@ref).
 """
 function ∠(azimuth::Real)::Complex{<:AbstractFloat}
+	@specialize
 	cispi(azimuth / 180) # 360° = 2π rad
 end
 
@@ -203,7 +209,7 @@ filesystem's stored case for the path is returned.
 
 # Examples
 ```jldoctest
-julia> stdpath("/home/myuser/../example.jl")
+julia> stdpath("/home/user/../example.jl")
 "/home/example.jl"
 
 julia> stdpath("Documents\\\\Julia\\\\")
@@ -222,7 +228,7 @@ function stdpath(path::AbstractString, paths::AbstractString...; real::Bool = fa
 end
 
 """
-	Exts.walkdir(path = pwd(); topdown = true)
+	Exts.walkdir(path::AbstractString = pwd(); topdown = true) -> Channel
 
 Return an iterator that walks the directory tree of a directory.
 
@@ -251,7 +257,7 @@ for (path, ds, fs) ∈ Exts.walkdir(".")
 end
 ```
 """
-function walkdir(path = pwd(); topdown::Bool = true)
+function walkdir(path::AbstractString = pwd(); topdown::Bool = true)::Channel
 	_readdir = @static VERSION ≥ v"1.11" ? Base.Filesystem._readdirx : readdir
 	function _walk(ch::Channel, pf::String)
 		ds = String[]
@@ -261,13 +267,11 @@ function walkdir(path = pwd(); topdown::Bool = true)
 			push!(Base.isdir(x) ? ds : fs, @static VERSION ≥ v"1.11" ? x.name : x)
 		end
 		topdown && push!(ch, (pf, ds, fs))
-		# LCOV_EXCL_START
-		for d ∈ ds
-			_walk(ch, stdpath(pf, d))
+		foreach(ds) do d
+			_walk(ch, stdpath(pf, d)) # LCOV_EXCL_LINE
 		end
-		# LCOV_EXCL_STOP
 		topdown || push!(ch, (pf, ds, fs))
-		nothing
+		nothing # LCOV_EXCL_LINE
 	end
 	Channel{Tuple{String, Vararg{Vector{String}, 2}}}() do chnl
 		_walk(chnl, stdpath(path))
