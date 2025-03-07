@@ -87,8 +87,8 @@ dropnothing(itr::AbstractArray) = begin
 	@static v"1.10" ≤ VERSION < v"1.11" ? (return r) : r # fix coverage on v1.10
 end
 
-ensure_vector(a::AbstractArray)  = eachslice(a, dims = ndims(a))
-ensure_vector(v::AbstractVector) = v
+ensure_vector(a::AbstractArray)::AbstractVector  = eachslice(a, dims = ndims(a))
+ensure_vector(v::AbstractVector)::AbstractVector = v
 
 flatten(itr) = collect(Iterators.flatten(itr))
 

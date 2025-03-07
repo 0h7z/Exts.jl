@@ -246,13 +246,13 @@ See also: [`readdir`](@extref Base.Filesystem.readdir),
 # Examples
 ```julia
 for (path, ds, fs) ∈ Exts.walkdir(".")
-	println("Directories in \$path")
+	@info "Directories in \$path"
 	for d ∈ ds
-		println(path / d) # path to directories
+		println(path * d) # path to directories
 	end
-	println("Files in \$path")
+	@info "Files in \$path"
 	for f ∈ fs
-		println(path / f) # path to files
+		println(path * f) # path to files
 	end
 end
 ```

@@ -330,10 +330,25 @@ end
 
 	@static if VERSION < v"1.10"
 		@test freeze(Dict()) isa LittleDict{Bottom, Bottom}
-		@test return_type(freeze, (Any,)) == LittleDict
+		@test return_type(freeze) == LittleDict
 	else
-		@test return_type(freeze, (Any,)) == FrozenLittleDict
+		@test return_type(freeze) == FrozenLittleDict
 		@test_throws MethodError freeze(Dict())
+	end
+
+	ASV = AbstractSlices{S, 1} where {S, N}
+	SV = Slices{P, M, X, S, 1} where {P, M, X, S, N}
+	@test AbstractVector === promote_type(Vector, SV)
+	@test ASV >: SV
+	for T ∈ (Vector, Matrix, VecOrMat, Array)
+		for R ∈ return_types(ensure_vector, (T,))
+			@test R <: SV || R === Vector
+		end
+	end
+	for T ∈ (AbstractVector, AbstractMatrix, AbstractVecOrMat, AbstractArray)
+		for R ∈ return_types(ensure_vector, (T,))
+			@test R <: SV || R === AbstractVector
+		end
 	end
 
 	fi, i = mktemp()
@@ -363,7 +378,7 @@ end
 end
 
 @testset "FITSIOExt" begin
-	using FITSIO: FITSIO, CFITSIO, FITS
+	using FITSIO: FITSIO, CFITSIO, ASCIITableHDU, FITS, TableHDU
 	@test ccall((:fits_is_reentrant, CFITSIO.libcfitsio), Bool, ())
 	# https://heasarc.gsfc.nasa.gov/fitsio/c/c_user/node15.html
 
@@ -373,10 +388,50 @@ end
 		"v5_13_2/spectra/lite/3650/spec-3650-55244-0001.fits",
 		mktempdir(), update_period = Inf,
 	)
+	GC.enable(false)
 	FITS(f -> @test_throws(ArgumentError,
 			read(f["SPALL"], DataFrame)), tmp, "r+")
 	FITS(f -> @test_nowarn(
 			read(f["SPALL"], DataFrame)), tmp, "r")
+	FITS(tmp) do f
+		@test 1 === get(f, "XXXXX", 1).ext
+		@test 2 === get(f, "COADD", 1).ext
+		@test 3 === get(f, "SPALL", 1).ext
+		@test 4 === get(f, "SPZLINE", 1).ext
+		@test DataFrame(f[2]) == read(f[2], DataFrame)
+		@test DataFrame(f[3]) == read(f[3], DataFrame)
+		@test DataFrame(f[4]) == read(f[4], DataFrame)
+		@test parent.(read(f[2], Vector)) == (read(f[2], Vector{Array}))
+		@test parent.(read(f[3], Vector)) == (read(f[3], Vector{Array}))
+		@test parent.(read(f[4], Vector)) == (read(f[4], Vector{Array}))
+		@test size(read(f[2], DataFrame)) == (4623, 8)
+		@test size(read(f[3], DataFrame)) == (1, 236)
+		@test size(read(f[4], DataFrame)) == (32, 19)
+		SV = Slices{P, M, X, S, 1} where {P, M, X, S, N}
+		@test all(@. $read(f[2], Vector) isa Union{Vector, SV})
+		@test all(@. $read(f[3], Vector) isa Union{Vector, SV})
+		@test all(@. $read(f[4], Vector) isa Union{Vector, SV})
+	end
+	foreach(_ -> GC.gc(), 1:5)
+	@static if haskey(ENV, "CI") && v"1.10" ≤ VERSION < v"1.11" # LTS
+		err = @catch for _ ∈ 1:1000
+			FITS(f -> read(f[2], Vector), tmp)
+			FITS(f -> read(f[3], Vector), tmp)
+			FITS(f -> read(f[4], Vector), tmp)
+		end
+		@test isnothing(err)
+		foreach(_ -> GC.gc(), 1:5)
+	end
+	GC.enable(true)
+	for T ∈ subtypes(FITSIO.HDU)
+		@test fieldtype(T, :fitsfile) === CFITSIO.FITSFile
+		@test fieldtype(T, :ext) === Int
+	end
+	@test FITSIO.EitherTableHDU === Union{ASCIITableHDU, TableHDU}
+	@test return_type(CFITSIO.fits_file_mode) === Cint
+	@test return_type(CFITSIO.fits_file_name) === String
+	@test return_type(FITSIO.colnames) === Vector{String}
+	@test return_type(FITSIO.Tables.columnnames, (TableHDU,)) === Vector{Symbol}
 end
 
 @testset "PkgExt" begin
