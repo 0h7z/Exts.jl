@@ -10,9 +10,15 @@ Modules = [Exts]
 Order   = [:constant, :type]
 ```
 
+##	Macros
+```@autodocs
+Modules = [Exts]
+Order   = [:macro]
+```
+
 ##	Functions
 ```@autodocs
 Modules = [Exts]
-Order   = [:function, :macro]
+Order   = [:function]
 ```
 

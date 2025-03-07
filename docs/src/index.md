@@ -12,14 +12,15 @@ pkg> add Exts
 ```jldoctest
 julia> using Exts
 
-julia> ODict(Exts.ext(:)) # to see which extensions are loaded
-OrderedDict{Symbol, Union{Nothing, Module}} with 6 entries:
-  :BaseExt       => Exts.BaseExt
-  :DataFramesExt => DataFramesExt
-  :FITSIOExt     => FITSIOExt
-  :PkgExt        => PkgExt
-  :StatisticsExt => StatisticsExt
-  :YAMLExt       => YAMLExt
+julia> Exts.ext(:) # to see which extensions are loaded
+7-element Vector{Pair{Symbol, Union{Nothing, Module}}}:
+       :BaseExt => Exts.BaseExt
+ :DataFramesExt => DataFramesExt
+      :DatesExt => DatesExt
+     :FITSIOExt => FITSIOExt
+        :PkgExt => Exts.PkgExt
+ :StatisticsExt => StatisticsExt
+       :YAMLExt => YAMLExt
 ```
 
 *****
@@ -35,9 +36,15 @@ Modules = [Exts]
 Order   = [:constant, :type]
 ```
 
+## Macros
+```@autodocs
+Modules = [Exts]
+Order   = [:macro]
+```
+
 ## Functions
 ```@autodocs
 Modules = [Exts]
-Order   = [:function, :macro]
+Order   = [:function]
 ```
 

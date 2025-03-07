@@ -10,9 +10,15 @@ Modules = [FITSIOExt]
 Order   = [:constant, :type]
 ```
 
+## Macros
+```@autodocs
+Modules = [FITSIOExt]
+Order   = [:macro]
+```
+
 ## Functions
 ```@autodocs
 Modules = [FITSIOExt]
-Order   = [:function, :macro]
+Order   = [:function]
 ```
 

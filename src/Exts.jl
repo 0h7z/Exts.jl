@@ -72,6 +72,7 @@ end
 
 include("BaseExt.jl")
 include("Macro.jl")
+include("PkgExt.jl")
 include("Type.jl")
 
 (fs::VTuple1{Function})(xs...; kw...) = ((f(xs...; kw...) for f ∈ fs)...,)
@@ -121,7 +122,7 @@ end
 include("Function.jl")
 
 # PkgExt
-function with_temp_env end
+using .PkgExt
 
 # PythonCallExt
 function Jl end

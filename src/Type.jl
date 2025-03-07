@@ -1,4 +1,4 @@
-# Copyright (C) 2024 Heptazhou <zhou@0h7z.com>
+# Copyright (C) 2024-2025 Heptazhou <zhou@0h7z.com>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as
@@ -90,6 +90,8 @@ collisions occur etc.
 	When constructing a `LittleDict`, unlike hash-based `OrderedDict`/`Dict`, it
 	does not guarantee that the keys are unique but assumes so. Use at your own
 	risk if there might be duplicate keys.
+
+See also [LittleDicts](@extref LittleDict).
 """ LDict
 # https://github.com/JuliaCollections/OrderedCollections.jl/blob/master/src/little_dict.jl
 @doc """
@@ -98,6 +100,8 @@ collisions occur etc.
 `OrderedDict`s are simply dictionaries whose entries have a particular order.
 The order refers to insertion order, which allows deterministic iteration
 over the dictionary.
+
+See also [OrderedDicts](@extref).
 """ ODict
 # https://github.com/JuliaCollections/OrderedCollections.jl/blob/master/src/ordered_dict.jl
 @doc """
@@ -106,6 +110,8 @@ over the dictionary.
 `OrderedSet`s are simply sets whose entries have a particular order. The
 order refers to insertion order, which allows deterministic iteration over
 the set.
+
+See also [OrderedSets](@extref).
 """ OSet
 # https://github.com/JuliaCollections/OrderedCollections.jl/blob/master/src/ordered_set.jl
 

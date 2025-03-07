@@ -1,24 +1,24 @@
 ## API reference
 ```@autodocs
-Modules = [YAMLExt]
+Modules = [DatesExt]
 Order   = [:module]
 ```
 
 ## Types
 ```@autodocs
-Modules = [YAMLExt]
+Modules = [DatesExt]
 Order   = [:constant, :type]
 ```
 
 ## Macros
 ```@autodocs
-Modules = [YAMLExt]
+Modules = [DatesExt]
 Order   = [:macro]
 ```
 
 ## Functions
 ```@autodocs
-Modules = [YAMLExt]
+Modules = [DatesExt]
 Order   = [:function]
 ```
 

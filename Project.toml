@@ -1,7 +1,7 @@
 name = "Exts"
 uuid = "0b12d779-4123-4875-9d6c-e33c2e29e2c9"
 authors = ["Heptazhou <zhou at 0h7z dot com>"]
-version = "0.2.10"
+version = "0.2.11"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
@@ -12,6 +12,7 @@ Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 [weakdeps]
 CFITSIO = "3b1b4be9-1499-4b22-8d78-7db3344d1961"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 FITSIO = "525bcba6-941b-5504-bd06-fd0dc1a4d2eb"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 PythonCall = "6099a3de-0909-46bc-b1f4-468b9a2dfc0d"
@@ -21,8 +22,8 @@ YAML = "ddb6d928-2868-570f-bddf-ab3f9cf99eb6"
 
 [extensions]
 DataFramesExt = "DataFrames"
+DatesExt = "Dates"
 FITSIOExt = ["DataFrames", "FITSIO"]
-PkgExt = "Pkg"
 PythonCallExt = "PythonCall"
 StatisticsExt = "StatsBase"
 YAMLExt = "YAML"

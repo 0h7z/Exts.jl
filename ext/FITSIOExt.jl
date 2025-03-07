@@ -29,7 +29,7 @@ using FITSIO: FITSIO, CFITSIO, EitherTableHDU, FITS, HDU, fitsread
 """
 	get(f::FITS, name::AbstractString, default::Integer) -> HDU
 
-See also: [`get`](@extref Base.get).
+See also [`get`](@extref Base.get).
 """
 function Base.get(f::FITS, name::AbstractString, default::Integer)::HDU
 	haskey(f, name) ? f[name] : f[default]
@@ -56,7 +56,7 @@ Read a Vector of columns from the given table (of type `ASCIITableHDU` or
 `TableHDU`). Each column is of type `AbstractVector` (more specifically,
 either `Vector` or `AbstractSlices{S, 1} where S`).
 
-See also: [`Slices`](@extref Base.Slices).
+See also [`Slices`](@extref Base.Slices).
 """
 function Base.read(t::EitherTableHDU, ::Type{Vector},
 	colnames::AbstractVector{<:SymOrStr} = FITSIO.colnames(t))::Vector{<:AbstractVector}

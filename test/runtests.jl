@@ -377,6 +377,12 @@ end
 	@test dropmissing(DataFrame(x = [missing, 1])) == DataFrame(x = [1])
 end
 
+@testset "DatesExt" begin
+	using Dates: Date, Day, UTC, now, today
+	@test Date(1970) + Day(time() ÷ 86400) ≡ today(UTC)
+	@test Date(now(UTC)) ≡ today(UTC)
+end
+
 @testset "FITSIOExt" begin
 	using FITSIO: FITSIO, CFITSIO, ASCIITableHDU, FITS, TableHDU
 	@test ccall((:fits_is_reentrant, CFITSIO.libcfitsio), Bool, ())
@@ -435,14 +441,14 @@ end
 end
 
 @testset "PkgExt" begin
-	@test !isdefined(Exts.ext(:Pkg), :Pkg)
+	using Pkg: Pkg
+	@test Pkg ≡ Exts.PkgExt.Pkg()
 	load_path = copy(LOAD_PATH)
 	Exts.with_temp_env() do
 		@test isnothing(Base.active_project())
 		@test LOAD_PATH == ["@", "@stdlib"]
 	end
 	@test LOAD_PATH == load_path
-	@test isdefined(Exts.ext(:Pkg), :Pkg)
 end
 
 @testset "StatisticsExt" begin

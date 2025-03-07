@@ -13,23 +13,20 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 """
-	PkgExt
+	DatesExt
 """
-module PkgExt
-@nospecialize
+module DatesExt
 
-using Exts: Exts
+using Dates: Dates, Date, UTC, now
 
 """
-	Exts.with_temp_env(f::Function)
+	today(::Type{UTC}) -> Date
 
-Equivalent to `Pkg.Operations.with_temp_env(f, "@stdlib")`.
+Return the date portion of `now(UTC)`.
+
+See also [`now`](@extref Dates.now-Tuple{}), [`today`](@extref Dates.today).
 """
-function Exts.with_temp_env(f::Function)
-	@noinline
-	@isdefined(Pkg) || @eval using Pkg: Pkg
-	@eval Pkg.Operations.with_temp_env($f, "@stdlib")
-end
+Dates.today(::Type{UTC}) = Date(now(UTC))
 
-end
+end # module
 

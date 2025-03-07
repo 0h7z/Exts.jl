@@ -35,24 +35,27 @@ function cis(theta::Real)::Complex{<:AbstractFloat}
 end
 
 """
-	Exts.ext(::Colon) -> VTuple{Pair{Symbol, Maybe{Module}}}
+	Exts.ext(::Colon) -> Vector{Pair{Symbol, Maybe{Module}}}
 """
-function ext(::Colon)::VTuple{Pair{Symbol, Maybe{Module}}}
+function ext(::Colon)::Vector{Pair{Symbol, Maybe{Module}}}
 	xs = (
 		:Base,
 		:DataFrames,
+		:Dates,
 		:FITSIO,
 		:Pkg,
 		:Statistics,
 		:YAML,
+		# :PythonCall,
 	)
-	map(x -> Symbol(x, :Ext) => ext(x), xs)
+	collect(Symbol(x, :Ext) => ext(x) for x ∈ xs)
 end
 """
 	Exts.ext(x::Symbol) -> Maybe{Module}
 """
 function ext(x::Symbol)::Maybe{Module}
 	x ≡ :Base ? BaseExt :
+	x ≡ :Pkg  ? PkgExt  :
 	Base.get_extension(Exts, Symbol(x, :Ext))
 end
 
@@ -240,7 +243,7 @@ returned iterator is stateful so when accessed repeatedly each access will
 resume where the last left off, like [`Iterators.Stateful`](@extref
 Base.Iterators.Stateful).
 
-See also: [`readdir`](@extref Base.Filesystem.readdir),
+See also [`readdir`](@extref Base.Filesystem.readdir),
 [`Base.walkdir`](@extref Base.Filesystem.walkdir).
 
 # Examples

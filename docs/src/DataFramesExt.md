@@ -10,9 +10,15 @@ Modules = [DataFramesExt]
 Order   = [:constant, :type]
 ```
 
+## Macros
+```@autodocs
+Modules = [DataFramesExt]
+Order   = [:macro]
+```
+
 ## Functions
 ```@autodocs
 Modules = [DataFramesExt]
-Order   = [:function, :macro]
+Order   = [:function]
 ```
 

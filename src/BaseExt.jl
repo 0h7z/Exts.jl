@@ -88,6 +88,8 @@ end
 	log10(x::T, σ::T) where T <: Real -> NTuple{2, AbstractFloat}
 
 Compute the logarithm of `x ± σ` to base 10.
+
+See also [`log10(x)`](@extref Base.log10).
 """
 function Base.log10(x::T, σ::T)::NTuple{2, AbstractFloat} where T <: Real
 	@specialize

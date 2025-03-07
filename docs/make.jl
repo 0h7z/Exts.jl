@@ -23,15 +23,20 @@ using Exts
 end)
 
 using DataFrames: DataFrames
+using Dates: Dates
 using FITSIO: FITSIO
+using Pkg: Pkg
 using StatsBase: StatsBase
 using YAML: YAML
 
-const cache = URL::String -> (URL, @noinfo download(URL * "objects.inv", mktempdir()))
+const cache = (URL::String) -> (URL, download(URL * "objects.inv", mktempdir()))
 const entry = ODict{String, String}()
 const extra = Module[]
-const links = InterLinks(
+const links = @nowarn InterLinks(
 	"Julia" => cache("https://docs.julialang.org/en/v1/"),
+	#
+	"OColl" => cache("https://juliacollections.github.io/OrderedCollections.jl/stable/"),
+	"Stats" => cache("https://juliastats.org/StatsBase.jl/stable/"),
 )
 
 cd(@__DIR__) do
@@ -47,12 +52,18 @@ for (k, v) ∈ Exts.ext(:)
 end
 end
 
+const writer = Documenter.HTML(
+	prerender     = true,
+	prettyurls    = !isinteractive(),
+	warn_outdated = false,
+)
+
 @info s"Documenter.doctest"
-@noinfo Documenter.doctest(Exts, fix = true, manual = false)
+@noinfo Documenter.doctest(Exts, fix = isinteractive(), manual = true)
 
 @info s"Documenter.makedocs"
 @noinfo Documenter.makedocs(
-	format    = Documenter.HTML(),
+	format    = writer,
 	modules   = [Exts, extra...],
 	pages     = ["Manual" => "index.md", entry...],
 	pagesonly = true,
