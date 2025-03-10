@@ -56,7 +56,7 @@ end
 function ext(x::Symbol)::Maybe{Module}
 	x ≡ :Base ? BaseExt :
 	x ≡ :Pkg  ? PkgExt  :
-	Base.get_extension(Exts, Symbol(x, :Ext))
+	Base.get_extension(@__MODULE__, Symbol(x, :Ext))
 end
 
 """

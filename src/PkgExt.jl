@@ -23,7 +23,7 @@ export with_temp_env
 using Base: PkgId, UUID, require
 
 # Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-Pkg() = require(PkgId(
+const Pkg() = require(PkgId(
 	UUID(0x44cfe95a_1eb2_52ea_b672_e2afdf69b78f),
 	"Pkg",
 ))
