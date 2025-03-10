@@ -41,14 +41,24 @@ const links = @nowarn InterLinks(
 
 cd(@__DIR__) do
 #! format: noindent
-for (k, v) ∈ Exts.ext(:)
+for (_, v) ∈ Exts.ext(:)
+	push!(extra, v)
+	@eval $(nameof(v)) = $v
+end
+for (k, v) ∈ [
+	:Base       => [:BaseExt],
+	:DataFrames => [:DataFramesExt],
+	:Dates      => [:DatesExt],
+	:FITSIO     => [:FITSIOExt, :FITSIODataFramesExt],
+	:Pkg        => [:PkgExt],
+	:Statistics => [:StatisticsExt],
+	:YAML       => [:YAMLExt],
+]
 	md = readstr("src/api.md")
-	md = replace(md, "[Exts]" => "[$k]")
+	md = replace(md, "[Exts]" => "[$(join(v, ", "))]")
 	md = replace(md, r"^#+\K\s+"m => " ")
 	entry["$k"] = "$k.md"
 	write("src/" * entry["$k"], md)
-	push!(extra, v)
-	@eval $k = $v
 end
 end
 

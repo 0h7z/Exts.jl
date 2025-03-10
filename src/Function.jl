@@ -38,25 +38,26 @@ end
 	Exts.ext(::Colon) -> Vector{Pair{Symbol, Maybe{Module}}}
 """
 function ext(::Colon)::Vector{Pair{Symbol, Maybe{Module}}}
+	# using DataFrames, Dates, Exts, FITSIO, StatsBase, YAML
 	xs = (
 		:Base,
 		:DataFrames,
 		:Dates,
-		:FITSIO,
+		:FITSIO, :FITSIODataFrames,
 		:Pkg,
 		:Statistics,
 		:YAML,
 		# :PythonCall,
 	)
-	collect(Symbol(x, :Ext) => ext(x) for x ∈ xs)
+	collect(x => ext(x) for x ∈ xs)
 end
 """
 	Exts.ext(x::Symbol) -> Maybe{Module}
 """
-function ext(x::Symbol)::Maybe{Module}
+function ext(x::Symbol, xs::Symbol...)::Maybe{Module}
 	x ≡ :Base ? BaseExt :
 	x ≡ :Pkg  ? PkgExt  :
-	Base.get_extension(Exts, Symbol(x, :Ext))
+	Base.get_extension(@__MODULE__, Symbol(x, xs..., :Ext))
 end
 
 """

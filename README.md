@@ -13,13 +13,14 @@ pkg> add Exts
 julia> using Exts
 
 julia> Exts.ext(:) # to see which extensions are loaded
-7-element Vector{Pair{Symbol, Union{Nothing, Module}}}:
-       :BaseExt => Exts.BaseExt
- :DataFramesExt => DataFramesExt
-      :DatesExt => DatesExt
-     :FITSIOExt => FITSIOExt
-        :PkgExt => Exts.PkgExt
- :StatisticsExt => StatisticsExt
-       :YAMLExt => YAMLExt
+8-element Vector{Pair{Symbol, Union{Nothing, Module}}}:
+             :Base => Exts.BaseExt
+       :DataFrames => DataFramesExt
+            :Dates => DatesExt
+           :FITSIO => FITSIOExt
+ :FITSIODataFrames => FITSIODataFramesExt
+              :Pkg => Exts.PkgExt
+       :Statistics => StatisticsExt
+             :YAML => YAMLExt
 ```
 

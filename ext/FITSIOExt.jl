@@ -19,7 +19,6 @@ module FITSIOExt
 @nospecialize
 
 using Base.Threads: @spawn
-using DataFrames: DataFrame
 using Exts: SymOrStr, ensure_vector
 using FITSIO: FITSIO, CFITSIO, EitherTableHDU, FITS, HDU, fitsread
 
@@ -34,19 +33,6 @@ See also [`get`](@extref Base.get).
 function Base.get(f::FITS, name::AbstractString, default::Integer)::HDU
 	haskey(f, name) ? f[name] : f[default]
 end
-
-"""
-	read(t::FITSIO.EitherTableHDU, DataFrame,
-		colnames::AbstractVector{<:SymOrStr} = FITSIO.colnames(t)) -> DataFrame
-
-Read a DataFrame from the given table (of type `ASCIITableHDU` or
-`TableHDU`).
-"""
-function Base.read(t::EitherTableHDU, ::Type{DataFrame},
-	colnames::AbstractVector{<:SymOrStr} = FITSIO.colnames(t))::DataFrame
-	# DataFrame(read(t, Matrix, colnames), colnames, copycols = false)
-	DataFrame(read(t, Vector, colnames), colnames, copycols = false)
-end # @doc read(::TableHDU, ::Type{DataFrame}, ::Vector{Symbol})
 
 """
 	read(t::FITSIO.EitherTableHDU, Vector,

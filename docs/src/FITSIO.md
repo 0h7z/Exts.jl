@@ -1,24 +1,24 @@
 ## API reference
 ```@autodocs
-Modules = [FITSIOExt]
+Modules = [FITSIOExt, FITSIODataFramesExt]
 Order   = [:module]
 ```
 
 ## Types
 ```@autodocs
-Modules = [FITSIOExt]
+Modules = [FITSIOExt, FITSIODataFramesExt]
 Order   = [:constant, :type]
 ```
 
 ## Macros
 ```@autodocs
-Modules = [FITSIOExt]
+Modules = [FITSIOExt, FITSIODataFramesExt]
 Order   = [:macro]
 ```
 
 ## Functions
 ```@autodocs
-Modules = [FITSIOExt]
+Modules = [FITSIOExt, FITSIODataFramesExt]
 Order   = [:function]
 ```
 

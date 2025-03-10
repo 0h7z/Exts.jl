@@ -12,9 +12,9 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
-@static if ("docs") ∈ ARGS
-	include("docs.jl")
-	exit()
+@static if isinteractive()
+	using Pkg: Pkg
+	Pkg.update()
 end
 
 using InteractiveUtils: subtypes
@@ -477,6 +477,6 @@ end
 	"""
 end
 
-@test all(nameof.(last.(Exts.ext(:))) .== first.(Exts.ext(:)))
-@static parse(Bool, get(ENV, "CI", "0")) || include("docs.jl")
+@test last.(Exts.ext(:)) isa Vector{Module}
+@static haskey(ENV, "CI") || include("docs.jl")
 
