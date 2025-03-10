@@ -16,7 +16,6 @@
 	PythonCallExt
 """
 module PythonCallExt
-@nospecialize
 
 using Exts: Exts
 using PythonCall: Py, pyconvert

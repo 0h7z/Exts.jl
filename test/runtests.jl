@@ -21,7 +21,7 @@ using InteractiveUtils: subtypes
 using Test
 
 @testset "Pkg" begin
-	using Pkg: PlatformEngines, Registry
+	using Pkg: PlatformEngines, Registry, Types, is_manifest_current
 	@test getfield.(Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
 	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z()))
 	# https://github.com/ip7z/7zip/blob/main/CPP/7zip/UI/Console/Main.cpp
@@ -31,6 +31,14 @@ using Test
 	@test PlatformEngines.p7zip_jll.is_available()
 	@info PlatformEngines.p7zip_jll.p7zip_path
 	@info PlatformEngines.find7z()
+
+	project_dir = dirname(Base.active_project())
+	@static if VERSION < v"1.11"
+		@test is_manifest_current(Types.Context()) && is_manifest_current()
+	else
+		@test is_manifest_current(Types.Context()) && is_manifest_current(project_dir)
+	end
+	@test Base.active_project() ≡ Types.projectfile_path(project_dir)
 end
 
 @testset "Core" begin
@@ -276,6 +284,7 @@ end
 	@test repr.(@__MODULE__) === "Main"
 	@test repr.(MIME("text/plain")) === "MIME type text/plain"
 	@test repr.(TextDisplay(devnull)) === "TextDisplay(Base.DevNull())"
+	@test return_type(filesize, (AbstractString,)) == Int64
 	@test return_type(invsqrt, (Any,)) == AbstractFloat
 	@test return_type(iterate, (DataType, Int)) == Maybe{Tuple{Any, Int}}
 	@test return_type(iterate, (TypeofBottom,)) == Nothing
@@ -442,7 +451,7 @@ end
 
 @testset "PkgExt" begin
 	using Pkg: Pkg
-	@test Pkg ≡ Exts.PkgExt.Pkg()
+	@test Pkg ≡ Exts.PkgExt.Pkg() ≡ Base.require(Module(), :Pkg)
 	load_path = copy(LOAD_PATH)
 	Exts.with_temp_env() do
 		@test isnothing(Base.active_project())

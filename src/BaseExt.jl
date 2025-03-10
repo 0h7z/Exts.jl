@@ -16,7 +16,6 @@
 	BaseExt
 """
 module BaseExt
-@nospecialize
 
 using Base: Bottom, Fix1, Fix2
 using Base: rewrap_unionall, unwrap_unionall
@@ -66,7 +65,6 @@ let UT = Union{Union, DataType}, UA = UnionAll,
 @inline unwrap(r::Union)                  = r
 @inline unwrap(T::UA)::UT                 = unwrap_unionall(T)
 
-@specialize
 @static if VERSION < v"1.10" # v1.9 ambiguity
 	@inline Base.iterate(::UA, ::TypeofBottom) = nothing # LCOV_EXCL_LINE
 end
@@ -79,7 +77,6 @@ end
 @inline Base.iterate(U::UA, T::Type{<:Tuple}) = iter_t(U, T, iterate(T))
 @inline Base.iterate(U::UA, x::Tuple)         = iter_t(U, x[1], iterate(x[1], x[2]))
 @inline Base.iterate(U::UU, T::Union)::TT     = rewrap(T.a, U), rewrap(T.b, U)
-@nospecialize
 end
 
 @inline Base.length(T::DataType) = length(T.parameters)
@@ -92,7 +89,6 @@ Compute the logarithm of `x ± σ` to base 10.
 See also [`log10(x)`](@extref Base.log10).
 """
 function Base.log10(x::T, σ::T)::NTuple{2, AbstractFloat} where T <: Real
-	@specialize
 	F::Type = float(T)
 	log10(x)::F, F(σ / log(10)x)::F
 	# https://physics.stackexchange.com/q/95254

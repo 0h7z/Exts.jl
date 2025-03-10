@@ -16,7 +16,6 @@
 	YAMLExt
 """
 module YAMLExt
-@nospecialize
 
 using Exts: lmap
 using YAML: YAML, yaml

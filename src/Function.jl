@@ -30,7 +30,6 @@ true
 ```
 """
 function cis(theta::Real)::Complex{<:AbstractFloat}
-	@specialize
 	cispi(theta / π)
 end
 
@@ -87,7 +86,6 @@ julia> invsqrt(4)
 ```
 """
 function invsqrt(x::T)::AbstractFloat where T <: Real
-	@specialize
 	F::Type = float(T)
 	F(sqrt(inv(big(x))))::F
 end
@@ -175,7 +173,6 @@ Return ``r∠θ``, where ``θ`` is in degrees. Equivalent to `radius∠(azimuth)
 See also [`∠`](@ref).
 """
 function polar(radius::Real, azimuth::Real)::Complex{<:AbstractFloat}
-	@specialize
 	cispi(azimuth / 180) * radius
 end
 """
@@ -186,7 +183,6 @@ Return ``1∠θ``, where ``θ`` is in degrees. Equivalent to `polar(1, azimuth)`
 See also [`polar`](@ref), [`Exts.cis`](@ref).
 """
 function ∠(azimuth::Real)::Complex{<:AbstractFloat}
-	@specialize
 	cispi(azimuth / 180) # 360° = 2π rad
 end
 

@@ -16,7 +16,6 @@
 	FITSIOExt
 """
 module FITSIOExt
-@nospecialize
 
 using Base.Threads: @spawn
 using Exts: SymOrStr, ensure_vector

@@ -16,7 +16,6 @@
 	PkgExt
 """
 module PkgExt
-@nospecialize
 
 export with_temp_env
 

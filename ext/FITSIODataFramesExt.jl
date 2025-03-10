@@ -16,7 +16,6 @@
 	FITSIODataFramesExt
 """
 module FITSIODataFramesExt
-@nospecialize
 
 using DataFrames: DataFrame
 using Exts: SymOrStr
