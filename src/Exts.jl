@@ -111,10 +111,10 @@ function pause(msg::Maybe{AbstractString} = nothing; ante::Int = 0, post::Int = 
 	print(stdout, '\n'^post)
 end
 function pause(i::IO, o::IO, msg::Maybe{AbstractString} = nothing)::Nothing
-	print(o, @something msg raw"Press any key to continue . . . ")
-	ccall(:jl_tty_set_mode, Cint, (Ptr{Cvoid}, Cint), i.handle, 1)
+	print(o, @something msg "Press any key to continue . . . ")
+	@ccall jl_tty_set_mode(i.handle::Ptr{Cvoid}, 1::Cint)::Cint
 	read(i, Char)
-	ccall(:jl_tty_set_mode, Cint, (Ptr{Cvoid}, Cint), i.handle, 0)
+	@ccall jl_tty_set_mode(i.handle::Ptr{Cvoid}, 0::Cint)::Cint
 	print(o, '\n')
 end
 

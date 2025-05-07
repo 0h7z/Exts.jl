@@ -394,7 +394,7 @@ end
 
 @testset "FITSIOExt" begin
 	using FITSIO: FITSIO, CFITSIO, ASCIITableHDU, FITS, TableHDU
-	@test ccall((:fits_is_reentrant, CFITSIO.libcfitsio), Bool, ())
+	@test @ccall CFITSIO.libcfitsio.fits_is_reentrant()::Bool
 	# https://heasarc.gsfc.nasa.gov/fitsio/c/c_user/node15.html
 
 	using HTTP: HTTP
