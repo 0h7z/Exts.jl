@@ -13,7 +13,7 @@ defaults:
   run:
     shell: bash
 env:
-  JULIA_NUM_THREADS: auto
+  JULIA_NUM_THREADS: auto,auto
   JULIA_PKG_USE_CLI_GIT: true
 jobs:
   test:
