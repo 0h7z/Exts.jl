@@ -84,6 +84,17 @@ end
 
 	@static if !Sys.iswindows()
 	#! format: noindent
+	@test open(".") isa IOStream # why?
+	@test read(".") == []
+	@test read(homedir(), String) == ""
+	else
+	#! format: noindent
+	@test_throws SystemError open(".")
+	@test_throws SystemError read(".")
+	end
+
+	@static if !Sys.iswindows()
+	#! format: noindent
 	@test Bool(0) == Base.isdir("")
 	@test Bool(1) == Base.isdir(".")
 	@test Bool(1) == Base.isdir("..")
@@ -303,6 +314,8 @@ end
 	@test typeof(identity) === first(only(methods(identity)).sig)
 	@test_throws ArgumentError notmissing(missing)
 	@test_throws ArgumentError notnothing(nothing)
+	@test_throws SystemError readstr(".")
+	@test_throws SystemError readstr(homedir())
 
 	@test Bool(0) == Exts.isdir("")
 	@test Bool(1) == Exts.isdir(".")
@@ -368,6 +381,7 @@ end
 		@eval @test isnothing(@disp VERSION)
 	end
 	close.((i, o))
+	@test readstr(fo) ≡ open(readstr, fo)
 	@test readstr(fo) ≡ """
 	Press any key to continue . . . \n
 	v"$VERSION"

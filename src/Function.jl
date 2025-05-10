@@ -194,6 +194,10 @@ Read the entirety of `x` as a string. Equivalent to `read(x, String)`.
 See also [`read`](@extref Base.read), [`readchomp`](@extref Base.readchomp).
 """
 readstr(x)::String = read(x, String)
+function readstr(x::AbstractString)::String
+	Base.isdir(x) && throw(SystemError(x, Libc.EISDIR))
+	read(x, String)
+end
 
 """
 	stdpath(path::AbstractString...; real = false) -> String
