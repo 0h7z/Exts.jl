@@ -20,10 +20,13 @@ end
 using InteractiveUtils: subtypes
 using Test
 
+const REPO = "https://github.com/0h7z/Exts.jl"
+
 @testset "Pkg" begin
 	using Pkg: PlatformEngines, Registry, Types, is_manifest_current
 	@test getfield.(Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
 	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z()))
+	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z().exec[1:1] |> Cmd))
 	# https://github.com/ip7z/7zip/blob/main/CPP/7zip/UI/Console/Main.cpp
 	# https://github.com/mcmilk/7-Zip/blob/master/CPP/7zip/UI/Console/Main.cpp
 	# https://github.com/p7zip-project/p7zip/blob/master/CPP/7zip/UI/Console/Main.cpp
@@ -77,7 +80,7 @@ end
 	project  = ["Julia", ""] .* "Project"
 	manifest = ["Julia", ""] .* "Manifest"
 	@static if VERSION ≥ v"1.10.8"
-		manifest = manifest .* ["-v1.$(VERSION.minor)" ""]
+		manifest = manifest .* ["-v$(VERSION.major).$(VERSION.minor)" ""]
 	end
 	@test Base.project_names ≡ (project .* ".toml"...,)
 	@test Base.manifest_names ≡ (manifest .* ".toml"...,)
@@ -196,6 +199,8 @@ end
 	@test_throws MethodError [Tuple...]
 	@test_throws MethodError [Union...]
 	@test_throws MethodError [Union{}...]
+	@test_throws MethodError 86400_000BigInt
+	@test_throws MethodError 86400_000Float64
 	@test_throws MethodError collect(isodd, 1:3)
 	@test_throws MethodError collect(isodd, i for i ∈ 1:3)
 	@test_throws MethodError collect(Tuple{})
@@ -219,7 +224,7 @@ end
 	using Exts
 
 	allowed_undefineds = [
-		GlobalRef.(Base, [:active_repl, :active_repl_backend])
+		GlobalRef.(Base, [:active_repl, :active_repl_backend, :cwstring])
 		GlobalRef.(Base.MainInclude, [:Distributed, :InteractiveUtils])
 	]
 
@@ -269,6 +274,8 @@ end
 	@test getfirst(iseven, 1:9) == getfirst(iseven)(1:9) == 2
 	@test getlast(iseven, 1:9) == getlast(iseven)(1:9) == 8
 	@test invsqrt(2^-2) == 2
+	@test isa(86400_000BigInt, BigInt)
+	@test isa(86400_000Float64, Float64)
 	@test isempty(detect_ambiguities(Core, Base, Exts; recursive = true, allowed_undefineds))
 	@test log10(11, 2) isa NTuple{2, Float64}
 	@test Maybe{Missing} == maybe(Missing) == maybe(Missing, Missing)
@@ -379,12 +386,18 @@ end
 		write(stdin, '\n'), seekstart(stdin)
 		pause(post = 1)
 		@eval @test isnothing(@disp VERSION)
+		let m = Module()
+			@eval m using Exts: @disp
+			@eval m f(__a1__) = @disp __a1__
+			@eval m f(:(...))
+		end
 	end
 	close.((i, o))
 	@test readstr(fo) ≡ open(readstr, fo)
 	@test readstr(fo) ≡ """
 	Press any key to continue . . . \n
 	v"$VERSION"
+	:...
 	"""
 end
 
@@ -401,23 +414,24 @@ end
 end
 
 @testset "DatesExt" begin
-	using Dates: Date, Day, UTC, now, today
+	using Dates: Date, Day, Second, UTC, now, today
 	@test Date(1970) + Day(time() ÷ 86400) ≡ today(UTC)
 	@test Date(now(UTC)) ≡ today(UTC)
+	@test Second((1Day)) ≡ 86400Second
 end
 
 @testset "FITSIOExt" begin
-	using FITSIO: FITSIO, CFITSIO, ASCIITableHDU, FITS, TableHDU
+	using FITSIO: FITSIO, ASCIITableHDU, FITS, ImageHDU, TableHDU
+	using FITSIO.CFITSIO: CFITSIO, CFITSIO_jll, CFITSIOError
 	@test @ccall CFITSIO.libcfitsio.fits_is_reentrant()::Bool
 	# https://heasarc.gsfc.nasa.gov/fitsio/c/c_user/node15.html
 
 	using HTTP: HTTP
 	tmp = HTTP.download(
-		"https://data.sdss.org/sas/dr18/spectro/sdss/redux/" *
-		"v5_13_2/spectra/lite/3650/spec-3650-55244-0001.fits",
+		# https://data.sdss.org/sas/dr18/spectro/sdss/redux/v5_13_2/spectra/lite/3650/
+		"$REPO/releases/download/v0.2.15/spec-3650-55244-0001.fits",
 		mktempdir(), update_period = Inf,
 	)
-	GC.enable(false)
 	FITS(f -> @test_throws(ArgumentError,
 			read(f["SPALL"], DataFrame)), tmp, "r+")
 	FITS(f -> @test_nowarn(
@@ -441,7 +455,6 @@ end
 		@test all(@. $read(f[3], Vector) isa Union{Vector, SV})
 		@test all(@. $read(f[4], Vector) isa Union{Vector, SV})
 	end
-	foreach(_ -> GC.gc(), 1:5)
 	@static if haskey(ENV, "CI") && v"1.10" ≤ VERSION < v"1.11" # LTS
 		err = @catch for _ ∈ 1:1000
 			FITS(f -> read(f[2], Vector), tmp)
@@ -449,9 +462,7 @@ end
 			FITS(f -> read(f[4], Vector), tmp)
 		end
 		@test isnothing(err)
-		foreach(_ -> GC.gc(), 1:5)
 	end
-	GC.enable(true)
 	for T ∈ subtypes(FITSIO.HDU)
 		@test fieldtype(T, :fitsfile) === CFITSIO.FITSFile
 		@test fieldtype(T, :ext) === Int
@@ -461,6 +472,29 @@ end
 	@test return_type(CFITSIO.fits_file_name) === String
 	@test return_type(FITSIO.colnames) === Vector{String}
 	@test return_type(FITSIO.Tables.columnnames, (TableHDU,)) === Vector{Symbol}
+	# https://data.sdss.org/sas/dr9/sdss/spectro/redux/v5_4_45/spectra/
+	(isfile)("spAll-gal-v5_4_45.fits") && try
+		FITS("spAll-gal-v5_4_45.fits") do f
+		#! format: noindent
+		@test 2 == length(f)
+		@test f[1] isa ImageHDU{UInt8, 0}
+		@test f[2] isa TableHDU
+		err = @catch read(f[1])
+		@test () === size(f[1])
+		@test err isa CFITSIOError && err.errcode == 320
+		hdr = FITSIO.read_header(f[2])
+		@test hdr["NAXIS1"] == 3964
+		@test hdr["NAXIS2"] == 563688
+		col = FITSIO.Tables.columnnames(f[2])::Vector{Symbol}
+		@test FITSIO.colnames(f[2]) == String.(col)
+		@test hdr["TFIELDS"] == length(col) == 231
+		end
+	catch err
+		ver = notnothing(pkgversion(CFITSIO_jll))
+		@error "CFITSIO_jll v$ver" exception = (err, catch_backtrace())
+		@test false broken = Sys.iswindows() && ver ≥ v"4.6"
+		@test err isa CFITSIOError && err.errcode == 116
+	end
 end
 
 @testset "PkgExt" begin

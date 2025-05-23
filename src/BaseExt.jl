@@ -35,6 +35,8 @@ See [`Base.$($T)`](@extref).
 """ $T
 end
 
+@inline Base.:*(x::Real, ::Type{T}) where T = T(x)
+
 let VM = AbstractVecOrMat, M = AbstractMatrix
 #! format: noindent
 @inline Base.adjoint(m::VM{Any})                         = permutedims(m)::M{Any}

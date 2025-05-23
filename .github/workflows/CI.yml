@@ -39,6 +39,7 @@ jobs:
           - { experimental: true, julia-version: "1.11-nightly" }
           - { experimental: true, julia-version: "1.12-nightly" }
           - { experimental: true, julia-version: "1.13-nightly" }
+    needs: data
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,10 +52,24 @@ jobs:
         with:
           ignore-no-cache: true
           localregistry: https://github.com/0h7z/0hjl.git
+      - uses: actions/cache@v4
+        with:
+          enableCrossOsArchive: true
+          path: spAll-gal-v5_4_45.fits.zst
+          key: spAll-gal-v5_4_45.fits.zst
+        id: cache
+      - run: |
+          zstd -T0 -l spAll-gal-v5_4_45.fits.zst -v
+          zstd -T0 -d spAll-gal-v5_4_45.fits.zst --output-dir-flat test
+        if: ${{ steps.cache.outputs.cache-hit }}
       - uses: julia-actions/julia-runtest@v1
       - uses: heptazhou/julia-codecov@v1
         with:
           dirs: src:ext
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }} - ${{ matrix.julia-version }}
+          path: lcov.info
       - uses: codecov/codecov-action@v4
         with:
           file: lcov.info
@@ -81,3 +96,18 @@ jobs:
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/cache@v4
+        with:
+          enableCrossOsArchive: true
+          lookup-only: true
+          path: spAll-gal-v5_4_45.fits.zst
+          key: spAll-gal-v5_4_45.fits.zst
+        id: cache
+      - run: curl -LO ${{ env.URL }}/download/v0.2.15/spAll-gal-v5_4_45.fits.zst
+        env:
+          URL: https://github.com/0h7z/Exts.jl/releases
+        if: ${{ !steps.cache.outputs.cache-hit }}
