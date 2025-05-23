@@ -20,10 +20,13 @@ end
 using InteractiveUtils: subtypes
 using Test
 
+const REPO = "https://github.com/0h7z/Exts.jl"
+
 @testset "Pkg" begin
 	using Pkg: PlatformEngines, Registry, Types, is_manifest_current
 	@test getfield.(Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
 	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z()))
+	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z().exec[1:1] |> Cmd))
 	# https://github.com/ip7z/7zip/blob/main/CPP/7zip/UI/Console/Main.cpp
 	# https://github.com/mcmilk/7-Zip/blob/master/CPP/7zip/UI/Console/Main.cpp
 	# https://github.com/p7zip-project/p7zip/blob/master/CPP/7zip/UI/Console/Main.cpp
@@ -77,7 +80,7 @@ end
 	project  = ["Julia", ""] .* "Project"
 	manifest = ["Julia", ""] .* "Manifest"
 	@static if VERSION ≥ v"1.10.8"
-		manifest = manifest .* ["-v1.$(VERSION.minor)" ""]
+		manifest = manifest .* ["-v$(VERSION.major).$(VERSION.minor)" ""]
 	end
 	@test Base.project_names ≡ (project .* ".toml"...,)
 	@test Base.manifest_names ≡ (manifest .* ".toml"...,)
@@ -219,7 +222,7 @@ end
 	using Exts
 
 	allowed_undefineds = [
-		GlobalRef.(Base, [:active_repl, :active_repl_backend])
+		GlobalRef.(Base, [:active_repl, :active_repl_backend, :cwstring])
 		GlobalRef.(Base.MainInclude, [:Distributed, :InteractiveUtils])
 	]
 
@@ -379,12 +382,18 @@ end
 		write(stdin, '\n'), seekstart(stdin)
 		pause(post = 1)
 		@eval @test isnothing(@disp VERSION)
+		let m = Module()
+			@eval m using Exts: @disp
+			@eval m f(__a1__) = @disp __a1__
+			@eval m f(:(...))
+		end
 	end
 	close.((i, o))
 	@test readstr(fo) ≡ open(readstr, fo)
 	@test readstr(fo) ≡ """
 	Press any key to continue . . . \n
 	v"$VERSION"
+	:...
 	"""
 end
 
@@ -407,14 +416,15 @@ end
 end
 
 @testset "FITSIOExt" begin
-	using FITSIO: FITSIO, CFITSIO, ASCIITableHDU, FITS, TableHDU
+	using FITSIO: FITSIO, ASCIITableHDU, FITS, ImageHDU, TableHDU
+	using FITSIO.CFITSIO: CFITSIO, CFITSIOError
 	@test @ccall CFITSIO.libcfitsio.fits_is_reentrant()::Bool
 	# https://heasarc.gsfc.nasa.gov/fitsio/c/c_user/node15.html
 
 	using HTTP: HTTP
 	tmp = HTTP.download(
-		"https://data.sdss.org/sas/dr18/spectro/sdss/redux/" *
-		"v5_13_2/spectra/lite/3650/spec-3650-55244-0001.fits",
+		# https://data.sdss.org/sas/dr18/spectro/sdss/redux/v5_13_2/spectra/lite/3650/
+		"$REPO/releases/download/v0.2.15/spec-3650-55244-0001.fits",
 		mktempdir(), update_period = Inf,
 	)
 	GC.enable(false)
@@ -461,6 +471,28 @@ end
 	@test return_type(CFITSIO.fits_file_name) === String
 	@test return_type(FITSIO.colnames) === Vector{String}
 	@test return_type(FITSIO.Tables.columnnames, (TableHDU,)) === Vector{Symbol}
+	@static if isfile("spAll-gal-v5_4_45.fits")
+	#! format: noindent
+	@assert (filesize("spAll-gal-v5_4_45.fits") == 2_234_502_720)
+	# https://data.sdss.org/sas/dr9/sdss/spectro/redux/v5_4_45/spectra/
+	err = @catch FITS("spAll-gal-v5_4_45.fits") do f
+		@test 2 == length(f)
+		@test f[1] isa ImageHDU{UInt8, 0}
+		@test f[2] isa TableHDU
+		err = @catch read(f[1])
+		@test () === size(f[1])
+		@test err isa CFITSIOError && err.errcode == 320
+		hdr = FITSIO.read_header(f[2])
+		@test hdr["NAXIS1"] == 3964
+		@test hdr["NAXIS2"] == 563688
+		col = FITSIO.Tables.columnnames(f[2])::Vector{Symbol}
+		@test FITSIO.colnames(f[2]) == String.(col)
+		@test hdr["TFIELDS"] == length(col) == 231
+	end
+	@test isnothing(err) broken = Sys.iswindows()
+	isnothing(err) ||
+		@test err isa CFITSIOError && err.errcode == 116
+	end
 end
 
 @testset "PkgExt" begin

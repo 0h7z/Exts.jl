@@ -195,7 +195,7 @@ See also [`read`](@extref Base.read), [`readchomp`](@extref Base.readchomp).
 """
 readstr(x)::String = read(x, String)
 function readstr(x::AbstractString)::String
-	Base.isdir(x) && throw(SystemError(x, Libc.EISDIR))
+	Base.isdir(x) && systemerror(x, Libc.EISDIR)
 	read(x, String)
 end
 

@@ -39,6 +39,7 @@ jobs:
           - { experimental: true, julia-version: "1.11-nightly" }
           - { experimental: true, julia-version: "1.12-nightly" }
           - { experimental: true, julia-version: "1.13-nightly" }
+    needs: data
     steps:
       - uses: actions/checkout@v4
         with:
@@ -51,6 +52,17 @@ jobs:
         with:
           ignore-no-cache: true
           localregistry: https://github.com/0h7z/0hjl.git
+      - uses: actions/cache@v4
+        with:
+          enableCrossOsArchive: true
+          path: spAll-gal-v5_4_45.7z
+          key: spAll-gal-v5_4_45.7z
+        if: ${{ matrix.julia-version == '1.11' }}
+        id: cache
+      - run: |
+          7z l -ba -slt spAll-gal-v5_4_45.7z
+          7z x -o"test" spAll-gal-v5_4_45.7z
+        if: ${{ steps.cache.outputs.cache-hit }}
       - uses: julia-actions/julia-runtest@v1
       - uses: heptazhou/julia-codecov@v1
         with:
@@ -81,3 +93,18 @@ jobs:
       - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/cache@v4
+        with:
+          enableCrossOsArchive: true
+          lookup-only: true
+          path: spAll-gal-v5_4_45.7z
+          key: spAll-gal-v5_4_45.7z
+        id: cache
+      - run: curl -LO $REPO/releases/download/v0.2.15/spAll-gal-v5_4_45.7z
+        env:
+          REPO: https://github.com/0h7z/Exts.jl
+        if: ${{ !steps.cache.outputs.cache-hit }}

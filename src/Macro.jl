@@ -66,11 +66,11 @@ julia> @disp "+-×÷"...
 """
 macro disp(ex::Expr)
 	:... ≡ ex.head ?
-	:(foreach(disp, ($ex,))) :
-	:(disp($ex))
+	:(foreach(disp, ($(esc(ex)),))) :
+	:(disp($(esc(ex))))
 end
 macro disp(ex)
-	:(disp($ex))
+	:(disp($(esc(ex))))
 end
 
 """
