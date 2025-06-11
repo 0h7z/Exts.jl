@@ -427,7 +427,6 @@ end
 		"$REPO/releases/download/v0.2.15/spec-3650-55244-0001.fits",
 		mktempdir(), update_period = Inf,
 	)
-	GC.enable(false)
 	FITS(f -> @test_throws(ArgumentError,
 			read(f["SPALL"], DataFrame)), tmp, "r+")
 	FITS(f -> @test_nowarn(
@@ -451,7 +450,6 @@ end
 		@test all(@. $read(f[3], Vector) isa Union{Vector, SV})
 		@test all(@. $read(f[4], Vector) isa Union{Vector, SV})
 	end
-	foreach(_ -> GC.gc(), 1:5)
 	@static if haskey(ENV, "CI") && v"1.10" ≤ VERSION < v"1.11" # LTS
 		err = @catch for _ ∈ 1:1000
 			FITS(f -> read(f[2], Vector), tmp)
@@ -459,9 +457,7 @@ end
 			FITS(f -> read(f[4], Vector), tmp)
 		end
 		@test isnothing(err)
-		foreach(_ -> GC.gc(), 1:5)
 	end
-	GC.enable(true)
 	for T ∈ subtypes(FITSIO.HDU)
 		@test fieldtype(T, :fitsfile) === CFITSIO.FITSFile
 		@test fieldtype(T, :ext) === Int
@@ -489,7 +485,8 @@ end
 		@test FITSIO.colnames(f[2]) == String.(col)
 		@test hdr["TFIELDS"] == length(col) == 231
 	end
-	@test isnothing(err) broken = Sys.iswindows()
+	ver = CFITSIO.libcfitsio_version()
+	@test isnothing(err) broken = Sys.iswindows() && ver ≥ v"4.6"
 	isnothing(err) ||
 		@test err isa CFITSIOError && err.errcode == 116
 	end

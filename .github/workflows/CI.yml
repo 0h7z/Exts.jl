@@ -55,13 +55,13 @@ jobs:
       - uses: actions/cache@v4
         with:
           enableCrossOsArchive: true
-          path: spAll-gal-v5_4_45.7z
-          key: spAll-gal-v5_4_45.7z
+          path: spAll-gal-v5_4_45.fits.zst
+          key: spAll-gal-v5_4_45.fits.zst
         if: ${{ matrix.julia-version == '1.11' }}
         id: cache
       - run: |
-          7z l -ba -slt spAll-gal-v5_4_45.7z
-          7z x -o"test" spAll-gal-v5_4_45.7z
+          zstd -T0 -l spAll-gal-v5_4_45.fits.zst -v
+          zstd -T0 -d spAll-gal-v5_4_45.fits.zst --output-dir-flat test
         if: ${{ steps.cache.outputs.cache-hit }}
       - uses: julia-actions/julia-runtest@v1
       - uses: heptazhou/julia-codecov@v1
@@ -101,10 +101,10 @@ jobs:
         with:
           enableCrossOsArchive: true
           lookup-only: true
-          path: spAll-gal-v5_4_45.7z
-          key: spAll-gal-v5_4_45.7z
+          path: spAll-gal-v5_4_45.fits.zst
+          key: spAll-gal-v5_4_45.fits.zst
         id: cache
-      - run: curl -LO $REPO/releases/download/v0.2.15/spAll-gal-v5_4_45.7z
+      - run: curl -LO ${{ env.URL }}/download/v0.2.15/spAll-gal-v5_4_45.fits.zst
         env:
-          REPO: https://github.com/0h7z/Exts.jl
+          URL: https://github.com/0h7z/Exts.jl/releases
         if: ${{ !steps.cache.outputs.cache-hit }}
