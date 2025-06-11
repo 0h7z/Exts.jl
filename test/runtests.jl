@@ -467,11 +467,10 @@ end
 	@test return_type(CFITSIO.fits_file_name) === String
 	@test return_type(FITSIO.colnames) === Vector{String}
 	@test return_type(FITSIO.Tables.columnnames, (TableHDU,)) === Vector{Symbol}
-	@static if isfile("spAll-gal-v5_4_45.fits")
-	#! format: noindent
-	@assert (filesize("spAll-gal-v5_4_45.fits") == 2_234_502_720)
 	# https://data.sdss.org/sas/dr9/sdss/spectro/redux/v5_4_45/spectra/
-	err = @catch FITS("spAll-gal-v5_4_45.fits") do f
+	(isfile)("spAll-gal-v5_4_45.fits") && try
+		FITS("spAll-gal-v5_4_45.fits") do f
+		#! format: noindent
 		@test 2 == length(f)
 		@test f[1] isa ImageHDU{UInt8, 0}
 		@test f[2] isa TableHDU
@@ -484,11 +483,12 @@ end
 		col = FITSIO.Tables.columnnames(f[2])::Vector{Symbol}
 		@test FITSIO.colnames(f[2]) == String.(col)
 		@test hdr["TFIELDS"] == length(col) == 231
-	end
-	ver = CFITSIO.libcfitsio_version()
-	@test isnothing(err) broken = Sys.iswindows() && ver ≥ v"4.6"
-	isnothing(err) ||
+		end
+	catch err
+		v, bt = CFITSIO.libcfitsio_version(), catch_backtrace()
+		@error "CFITSIO v$v" exception = (err, bt)
 		@test err isa CFITSIOError && err.errcode == 116
+		@test false broken = Sys.iswindows() && v ≥ v"4.6"
 	end
 end
 

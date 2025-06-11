@@ -57,7 +57,6 @@ jobs:
           enableCrossOsArchive: true
           path: spAll-gal-v5_4_45.fits.zst
           key: spAll-gal-v5_4_45.fits.zst
-        if: ${{ matrix.julia-version == '1.11' }}
         id: cache
       - run: |
           zstd -T0 -l spAll-gal-v5_4_45.fits.zst -v
