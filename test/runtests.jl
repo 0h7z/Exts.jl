@@ -417,7 +417,7 @@ end
 
 @testset "FITSIOExt" begin
 	using FITSIO: FITSIO, ASCIITableHDU, FITS, ImageHDU, TableHDU
-	using FITSIO.CFITSIO: CFITSIO, CFITSIOError
+	using FITSIO.CFITSIO: CFITSIO, CFITSIO_jll, CFITSIOError
 	@test @ccall CFITSIO.libcfitsio.fits_is_reentrant()::Bool
 	# https://heasarc.gsfc.nasa.gov/fitsio/c/c_user/node15.html
 
@@ -485,10 +485,10 @@ end
 		@test hdr["TFIELDS"] == length(col) == 231
 		end
 	catch err
-		v, bt = CFITSIO.libcfitsio_version(), catch_backtrace()
-		@error "CFITSIO v$v" exception = (err, bt)
+		ver = notnothing(pkgversion(CFITSIO_jll))
+		@error "CFITSIO_jll v$ver" exception = (err, catch_backtrace())
+		@test false broken = Sys.iswindows() && ver ≥ v"4.6"
 		@test err isa CFITSIOError && err.errcode == 116
-		@test false broken = Sys.iswindows() && v ≥ v"4.6"
 	end
 end
 
