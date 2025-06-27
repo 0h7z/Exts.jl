@@ -37,5 +37,5 @@ function with_temp_env(f::Function)
 	@invokelatest Pkg().Operations.with_temp_env(f, "@stdlib")
 end
 
-end
+end # module
 

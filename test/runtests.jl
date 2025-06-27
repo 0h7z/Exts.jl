@@ -348,13 +348,17 @@ end
 
 	@eval begin
 	#! format: noindent
+	@test @catch throw(true)
 	@test @try error() true
+	@test @trycatch throw(false) !
+	@test @trycatch throw(true)
 	@test @trycatch true
 	@test ErrorException("") == @catch error()
 	@test ErrorException("") == @trycatch error()
 	@test isnothing(@catch true)
 	@test isnothing(@try error())
 	@test S":" === :(:)
+	@trycatch throw(true) x -> @test x
 	end
 
 	@static if VERSION < v"1.10"
@@ -418,6 +422,18 @@ end
 	@test Date(1970) + Day(time() ÷ 86400) ≡ today(UTC)
 	@test Date(now(UTC)) ≡ today(UTC)
 	@test Second((1Day)) ≡ 86400Second
+
+	using Dates: DateTime
+	@test 00000 == DateTime(1858, 11, 17) |> datetime2mjd
+	@test 51544 == DateTime(2000, 01, 01) |> datetime2mjd
+	@test 60000 == DateTime(2023, 02, 25) |> datetime2mjd
+	@test 88069 == DateTime(2100, 01, 01) |> datetime2mjd
+	@test 99999 == DateTime(2132, 08, 31) |> datetime2mjd
+	@test DateTime(1858, 11, 17) == 00000 |> mjd2datetime
+	@test DateTime(2000, 01, 01) == 51544 |> mjd2datetime
+	@test DateTime(2023, 02, 25) == 60000 |> mjd2datetime
+	@test DateTime(2100, 01, 01) == 88069 |> mjd2datetime
+	@test DateTime(2132, 08, 31) == 99999 |> mjd2datetime
 end
 
 @testset "FITSIOExt" begin
@@ -429,7 +445,7 @@ end
 	using HTTP: HTTP
 	tmp = HTTP.download(
 		# https://data.sdss.org/sas/dr18/spectro/sdss/redux/v5_13_2/spectra/lite/3650/
-		"$REPO/releases/download/v0.2.15/spec-3650-55244-0001.fits",
+		"$REPO/releases/download/v0.2.16/spec-3650-55244-0001.fits",
 		mktempdir(), update_period = Inf,
 	)
 	FITS(f -> @test_throws(ArgumentError,

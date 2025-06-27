@@ -107,7 +107,7 @@ jobs:
           path: spAll-gal-v5_4_45.fits.zst
           key: spAll-gal-v5_4_45.fits.zst
         id: cache
-      - run: curl -LO ${{ env.URL }}/download/v0.2.15/spAll-gal-v5_4_45.fits.zst
+      - run: curl -LO ${{ env.URL }}/download/v0.2.16/spAll-gal-v5_4_45.fits.zst
         env:
           URL: https://github.com/0h7z/Exts.jl/releases
         if: ${{ !steps.cache.outputs.cache-hit }}

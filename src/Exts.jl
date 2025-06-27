@@ -37,6 +37,7 @@ export @S_str
 export @try
 export @trycatch
 export ∠
+export datetime2mjd
 export dropmissing
 export dropnothing
 export ensure_vector
@@ -47,6 +48,7 @@ export getfirst
 export getlast
 export invsqrt
 export lmap
+export mjd2datetime
 export nanmean
 export notmissing
 export pause
@@ -119,6 +121,10 @@ function pause(i::IO, o::IO, msg::Maybe{AbstractString} = nothing)::Nothing
 end
 
 include("Function.jl")
+
+# DatesExt
+function datetime2mjd end
+function mjd2datetime end
 
 # PkgExt
 using .PkgExt

@@ -29,5 +29,5 @@ function YAML.yaml(xs...; delim = "")::String
 	join(lmap(yaml, xs), delim)
 end
 
-end
+end # module
 

@@ -112,39 +112,40 @@ end
 		end
 	end
 	"""
-		@catch expr
+		@catch expr default = nothing
 
 	Evaluate the expression with a `try/catch` construct and return the
-	thrown exception. If no error (exception) occurs, return `nothing`.
+	thrown exception. If no error (exception) occurs, return `default`.
 
 	See also [The `try/catch` statement](@extref The-try/catch-statement),
 	[`try/catch`](@extref try), [`@trycatch`](@ref), [`@try`](@ref).
 	"""
-	macro $(:catch)(expr)
+	macro $(:catch)(expr, default = nothing)
 		quote
 			try
 				$(esc(expr))
-				nothing
+				$(esc(default))
 			catch e
 				e
 			end
 		end
 	end
 	"""
-		@trycatch expr
+		@trycatch expr func = identity
 
 	Evaluate the expression with a `try/catch` construct and return either
-	the result or the thrown exception, whichever available.
+	the result or the thrown exception (passed to and processed by `func`),
+	whichever available.
 
 	See also [The `try/catch` statement](@extref The-try/catch-statement),
 	[`try/catch`](@extref try), [`@try`](@ref), [`@catch`](@ref).
 	"""
-	macro trycatch(expr)
+	macro trycatch(expr, func = identity)
 		quote
 			try
 				$(esc(expr))
 			catch e
-				e
+				$(esc(func))(e)
 			end
 		end
 	end
