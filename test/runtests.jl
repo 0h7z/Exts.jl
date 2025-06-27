@@ -159,6 +159,7 @@ end
 	@test_throws UndefVarError dropnothing
 	@test_throws UndefVarError ensure_vector
 	@test_throws UndefVarError flatten
+	@test_throws UndefVarError floatminmax
 	@test_throws UndefVarError freeze
 	@test_throws UndefVarError getall
 	@test_throws UndefVarError getfirst
@@ -172,6 +173,7 @@ end
 	@test_throws UndefVarError readstr
 	@test_throws UndefVarError return_type
 	@test_throws UndefVarError stdpath
+	@test_throws UndefVarError typeminmax
 
 	# Reexport
 	@test_throws LoadError @eval @spawn
@@ -418,21 +420,39 @@ end
 end
 
 @testset "DatesExt" begin
-	using Dates: Date, Day, Second, UTC, now, today
+	using Dates: Dates, DateTime
+	@test Dates ≡ Exts.DatesExt.Dates ≡ Base.require(Module(), :Dates)
+	@test DateTime(-292277024, 5, 15) < DateTime(0) broken = true # :(
+	@test DateTime(-292277024, 5, 16) < DateTime(0)
+	@test DateTime(+292277025, 8, 17) > DateTime(0)
+	@test DateTime(+292277025, 8, 18) > DateTime(0) broken = true # :(
+	@test return_type(datetime2mjd) === Float64
+	@test return_type(mjd2datetime) === DateTime
+
+	using Dates: Date, Day, Millisecond, Second, UTC, datetime2julian, now, today
+	@test 0000000.0 === datetime2julian(Exts.DatesExt.EPOCH_JUL)
+	@test 2400000.0 === datetime2julian(Exts.DatesExt.EPOCH_RJD)
+	@test 2400000.5 === datetime2julian(Exts.DatesExt.EPOCH_MJD)
+	@test 2415020.0 === datetime2julian(Exts.DatesExt.EPOCH_DJD)
+	@test 2440587.5 === datetime2julian(Exts.DatesExt.EPOCH_NIX)
+	@test 2451544.5 === datetime2julian(Exts.DatesExt.EPOCH_M2K)
+	@test 2451545.0 === datetime2julian(Exts.DatesExt.EPOCH_J2K)
 	@test Date(1970) + Day(time() ÷ 86400) ≡ today(UTC)
 	@test Date(now(UTC)) ≡ today(UTC)
-	@test Second((1Day)) ≡ 86400Second
+	@test Second((1Day)) ≡ 86400Second ≡ Second(86400_000Millisecond)
 
-	using Dates: DateTime
+	# MJD
+	@test @trycatch(106_751_312_591 |> mjd2datetime) === DateTime(292277025, 08, 17)
+	@test @trycatch(106_751_312_592 |> mjd2datetime) isa InexactError
+	@test @trycatch(datetime2mjd(typemax(DateTime))) === 106_751_312_591.300_64
+	@test @trycatch(datetime2mjd(typemin(DateTime))) isa OverflowError
+	@test @trycatch(mjd2datetime(106_751_312_591.2)) === DateTime(292277025, 08, 17, 04, 48)
+	@test @trycatch(mjd2datetime(106_751_312_591.4)) isa InexactError
 	@test 00000 == DateTime(1858, 11, 17) |> datetime2mjd
 	@test 51544 == DateTime(2000, 01, 01) |> datetime2mjd
-	@test 60000 == DateTime(2023, 02, 25) |> datetime2mjd
-	@test 88069 == DateTime(2100, 01, 01) |> datetime2mjd
 	@test 99999 == DateTime(2132, 08, 31) |> datetime2mjd
 	@test DateTime(1858, 11, 17) == 00000 |> mjd2datetime
 	@test DateTime(2000, 01, 01) == 51544 |> mjd2datetime
-	@test DateTime(2023, 02, 25) == 60000 |> mjd2datetime
-	@test DateTime(2100, 01, 01) == 88069 |> mjd2datetime
 	@test DateTime(2132, 08, 31) == 99999 |> mjd2datetime
 end
 
@@ -515,7 +535,7 @@ end
 
 @testset "PkgExt" begin
 	using Pkg: Pkg
-	@test Pkg ≡ Exts.PkgExt.Pkg() ≡ Base.require(Module(), :Pkg)
+	@test Pkg ≡ Exts.PkgExt.Pkg ≡ Base.require(Module(), :Pkg)
 	load_path = copy(LOAD_PATH)
 	Exts.with_temp_env() do
 		@test isnothing(Base.active_project())

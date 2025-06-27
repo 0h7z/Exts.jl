@@ -19,23 +19,20 @@ module PkgExt
 
 export with_temp_env
 
-using Base: PkgId, UUID, require
-
-# Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
-const Pkg() = require(PkgId(
-	UUID(0x44cfe95a_1eb2_52ea_b672_e2afdf69b78f),
-	"Pkg",
-))
+using Exts: Exts, with_temp_env
+using Pkg: Pkg
 
 """
 	Exts.with_temp_env(f::Function)
 
 Equivalent to `Pkg.Operations.with_temp_env(f, "@stdlib")`.
 """
-function with_temp_env(f::Function)
+function Exts.with_temp_env(f::Function)
 	@noinline
-	@invokelatest Pkg().Operations.with_temp_env(f, "@stdlib")
+	Pkg.Operations.with_temp_env(f, "@stdlib")
 end
+
+__init__() = @eval Exts PkgExt = $PkgExt
 
 end # module
 

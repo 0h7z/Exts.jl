@@ -34,7 +34,7 @@ function Base.get(f::FITS, name::AbstractString, default::Integer)::HDU
 end
 
 """
-	read(t::FITSIO.EitherTableHDU, Vector,
+	read(t::EitherTableHDU, Vector,
 		colnames::AbstractVector{<:SymOrStr} = FITSIO.colnames(t)) -> Vector
 
 Read a Vector of columns from the given table (of type `ASCIITableHDU` or
@@ -49,7 +49,7 @@ function Base.read(t::EitherTableHDU, ::Type{Vector},
 end # @doc read(::TableHDU, ::Type{Vector}, ::Vector{Symbol})
 
 """
-	read(t::FITSIO.EitherTableHDU, Vector{Array},
+	read(t::EitherTableHDU, Vector{Array},
 		colnames::AbstractVector{<:SymOrStr} = FITSIO.colnames(t)) -> Vector
 
 Read a Vector of columns from the given table (of type `ASCIITableHDU` or

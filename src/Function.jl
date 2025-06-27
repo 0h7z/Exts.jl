@@ -60,6 +60,16 @@ function ext(x::Symbol, xs::Symbol...)::Maybe{Module}
 end
 
 """
+	floatminmax(T = Float64)
+
+Return `(floatmin(T), floatmax(T))`.
+
+See [`floatmin`](@extref Base.floatmin), [`floatmax`](@extref Base.floatmax).
+See also [`maxintfloat`](@extref Base.maxintfloat).
+"""
+floatminmax(T = Float64) = floatmin(T), floatmax(T) # LCOV_EXCL_LINE
+
+"""
 	freeze(d::AbstractDict{K, V}) where {K, V} -> LDict{<:K, <:V}
 
 Render a dictionary immutable by converting it to a `Tuple`-backed
@@ -230,6 +240,15 @@ function stdpath(path::AbstractString, paths::AbstractString...; real::Bool = fa
 	p = slash(p)
 	p = !d || endswith(p, '/') ? p : p * '/'
 end
+
+"""
+	typeminmax(T)
+
+Return `(typemin(T), typemax(T))`.
+
+See [`typemin`](@extref Base.typemin), [`typemax`](@extref Base.typemax).
+"""
+typeminmax(T) = typemin(T), typemax(T) # LCOV_EXCL_LINE
 
 """
 	Exts.walkdir(path::AbstractString = pwd(); topdown = true) -> Channel

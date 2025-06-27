@@ -19,7 +19,7 @@ julia> Exts.ext(:) # to see which extensions are loaded
             :Dates => DatesExt
            :FITSIO => FITSIOExt
  :FITSIODataFrames => FITSIODataFramesExt
-              :Pkg => Exts.PkgExt
+              :Pkg => PkgExt
        :Statistics => StatisticsExt
              :YAML => YAMLExt
 ```

@@ -22,7 +22,7 @@ using Exts: SymOrStr
 using FITSIO: FITSIO, EitherTableHDU
 
 """
-	read(t::FITSIO.EitherTableHDU, DataFrame,
+	read(t::EitherTableHDU, DataFrame,
 		colnames::AbstractVector{<:SymOrStr} = FITSIO.colnames(t)) -> DataFrame
 
 Read a DataFrame from the given table (of type `ASCIITableHDU` or

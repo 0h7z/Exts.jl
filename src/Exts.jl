@@ -42,6 +42,7 @@ export dropmissing
 export dropnothing
 export ensure_vector
 export flatten
+export floatminmax
 export freeze
 export getall
 export getfirst
@@ -56,6 +57,7 @@ export polar
 export readstr
 export return_type
 export stdpath
+export typeminmax
 
 using Logging: Logging
 using OrderedCollections: OrderedCollections
@@ -73,7 +75,6 @@ end
 
 include("BaseExt.jl")
 include("Macro.jl")
-include("PkgExt.jl")
 include("Type.jl")
 
 (fs::VTuple1{Function})(xs...; kw...) = ((f(xs...; kw...) for f ∈ fs)...,)
@@ -127,7 +128,7 @@ function datetime2mjd end
 function mjd2datetime end
 
 # PkgExt
-using .PkgExt
+function with_temp_env end
 
 # PythonCallExt
 function Jl end
