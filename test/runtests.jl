@@ -22,6 +22,9 @@ using Test
 
 const REPO = "https://github.com/0h7z/Exts.jl"
 
+const BareModule() = Module(gensym(), false)
+const VoidModule() = Module(gensym(), false, false)
+
 @testset "Pkg" begin
 	using Pkg: PlatformEngines, Registry, Types, is_manifest_current
 	@test getfield.(Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
@@ -349,20 +352,19 @@ end
 	@test getindex.(Exts.walkdir(), 2) == getindex.(Base.walkdir(pwd()), 2)
 	@test getindex.(Exts.walkdir(), 3) == getindex.(Base.walkdir(pwd()), 3)
 
-	@eval begin
-	#! format: noindent
-	@test @catch throw(true)
-	@test @try error() true
-	@test @trycatch throw(false) !
-	@test @trycatch throw(true)
-	@test @trycatch true
-	@test ErrorException("") == @catch error()
-	@test ErrorException("") == @trycatch error()
-	@test isnothing(@catch true)
-	@test isnothing(@try error())
-	@test S":" === :(:)
-	@trycatch throw(true) x -> @test x
-	end
+	@eval VoidModule() $Exts.@trycatch $throw($true) $(x -> @test x)
+	@test @eval VoidModule() $Exts.@catch $throw($true)
+	@test @eval VoidModule() $Exts.@try $error() $true
+	@test @eval VoidModule() $Exts.@trycatch $throw($false) $!
+	@test @eval VoidModule() $Exts.@trycatch $throw($true)
+	@test @eval VoidModule() $Exts.@trycatch $true
+	@test ErrorException("") == @eval VoidModule() $Exts.@catch $error()
+	@test ErrorException("") == @eval VoidModule() $Exts.@trycatch $error()
+	@test isnothing(@eval VoidModule() $Exts.@catch $true)
+	@test isnothing(@eval VoidModule() $Exts.@try $error())
+	@test Symbol(:(:)) === @eval VoidModule() $Exts.@S_str ":" # :(
+	# https://github.com/JuliaLang/julia/issues/36566
+	# v1.9 LoadError: syntax: cannot juxtapose string literal
 
 	@static if VERSION < v"1.10"
 		@test freeze(Dict()) isa LittleDict{Bottom, Bottom}

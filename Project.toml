@@ -1,7 +1,7 @@
-authors = ["Heptazhou <zhou@0h7z.com>"]
 name = "Exts"
 uuid = "0b12d779-4123-4875-9d6c-e33c2e29e2c9"
-version = "0.2.19"
+authors = ["Heptazhou <zhou@0h7z.com>"]
+version = "0.2.20"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"

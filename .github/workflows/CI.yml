@@ -50,6 +50,7 @@ jobs:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/julia-buildpkg@v1
         with:
+          precompile: "yes"
           ignore-no-cache: true
           localregistry: https://github.com/0h7z/0hjl.git
       - uses: actions/cache@v4
