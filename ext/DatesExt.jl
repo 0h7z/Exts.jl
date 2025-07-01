@@ -23,7 +23,7 @@ using Dates: Dates, DateTime, Date, UTC, UTM, now, value
 using Exts: Exts, datetime2mjd, mjd2datetime
 
 const EPOCH_DJD = DateTime(+1899, 12, 31, 12) #   Dublin Julian date      (IAU)
-const EPOCH_J2K = DateTime(+2000, 01, 01, 12) #          Julian date 2000
+const EPOCH_J2K = DateTime(+2000, 01, 01, 12) #          Julian date 2000 (IAU)
 const EPOCH_JUL = DateTime(-4713, 11, 24, 12) #          Julian date
 const EPOCH_M2K = DateTime(+2000, 01, 01, 00) # Modified Julian date 2000 (ESA)
 const EPOCH_MJD = DateTime(+1858, 11, 17, 00) # Modified Julian date      (SAO)

@@ -1,11 +1,12 @@
-authors = ["Heptazhou <zhou@0h7z.com>"]
 name = "Exts"
 uuid = "0b12d779-4123-4875-9d6c-e33c2e29e2c9"
-version = "0.2.19"
+authors = ["Heptazhou <zhou@0h7z.com>"]
+version = "0.2.20"
 
 [deps]
 DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+Mmap = "a63ad114-7e13-5084-954f-fe012c677804"
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 
