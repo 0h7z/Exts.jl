@@ -65,7 +65,7 @@ using Reexport: @reexport
 
 @reexport begin
 #! format: noindent
-using Base: Bottom, Fix1, Fix2
+using Base: Bottom, Fix1, Fix2, UInt8 as Byte
 using Base: nonnothingtype, notnothing, return_types
 using Base.Threads: @spawn, @threads, nthreads
 using Core: TypeofBottom, TypeofVararg

@@ -32,7 +32,5 @@ function Exts.with_temp_env(f::Function)
 	Pkg.Operations.with_temp_env(f, "@stdlib")
 end
 
-__init__() = @eval Exts PkgExt = $PkgExt
-
 end # module
 

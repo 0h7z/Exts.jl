@@ -20,7 +20,7 @@ module DatesExt
 export value
 
 using Dates: Dates, DateTime, Date, UTC, UTM, now, value
-using Exts: Exts
+using Exts: Exts, datetime2mjd, mjd2datetime
 
 const EPOCH_DJD = DateTime(+1899, 12, 31, 12) #   Dublin Julian date      (IAU)
 const EPOCH_J2K = DateTime(+2000, 01, 01, 12) #          Julian date 2000
@@ -39,10 +39,10 @@ end
 
 @doc """
 	datetime2mjd(dt::DateTime) -> Float64
-""" Exts.datetime2mjd
+""" datetime2mjd
 @doc """
 	mjd2datetime(x::Real) -> DateTime
-""" Exts.mjd2datetime
+""" mjd2datetime
 
 Exts.datetime2mjd(dt::DateTime) = Base.Checked.checked_sub(value(dt), EPOCH_MJD_VAL) / 86400_000
 Exts.mjd2datetime(x::Real)      = utm2dt(round(Int64, fma(86400e3, x, EPOCH_MJD_VAL)))
@@ -60,8 +60,6 @@ Base.typemax(::Type{DateTime}) = utm2dt(typemax(Int64))
 Base.typemin(::Type{DateTime}) = utm2dt(typemin(Int64))
 
 @inline utm2dt(x)::DateTime = DateTime(UTM(x))
-
-__init__() = @eval Exts DatesExt = $DatesExt
 
 end # module
 

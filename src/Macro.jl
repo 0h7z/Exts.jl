@@ -151,3 +151,12 @@ end
 	end
 end
 
+@eval macro $(:using)(x::Symbol)
+	local m = Symbol(x, :Ext)
+	quote
+		@eval const $m = $ext($(QuoteNode(x)))::Module
+		@eval using .$m
+		@eval $m
+	end
+end
+

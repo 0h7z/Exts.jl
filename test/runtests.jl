@@ -179,6 +179,7 @@ end
 	@test_throws LoadError @eval @spawn
 	@test_throws LoadError @eval @threads
 	@test_throws UndefVarError Bottom
+	@test_throws UndefVarError Byte
 	@test_throws UndefVarError Fix1
 	@test_throws UndefVarError Fix2
 	@test_throws UndefVarError FrozenLittleDict
@@ -421,22 +422,22 @@ end
 
 @testset "DatesExt" begin
 	using Dates: Dates, DateTime
-	@test Dates ≡ Exts.DatesExt.Dates ≡ Base.require(Module(), :Dates)
-	@test DateTime(-292277024, 5, 15) < DateTime(0) broken = true # :(
-	@test DateTime(-292277024, 5, 16) < DateTime(0)
-	@test DateTime(+292277025, 8, 17) > DateTime(0)
-	@test DateTime(+292277025, 8, 18) > DateTime(0) broken = true # :(
-	@test return_type(datetime2mjd) === Float64
-	@test return_type(mjd2datetime) === DateTime
+	@test Dates ≡ Exts.@using(Dates).Dates ≡ Base.require(Module(), :Dates)
+	@test DateTime(-292277024, 05, 15) < DateTime(0) broken = true # :(
+	@test DateTime(-292277024, 05, 16) < DateTime(0)
+	@test DateTime(+292277025, 08, 17) > DateTime(0)
+	@test DateTime(+292277025, 08, 18) > DateTime(0) broken = true # :(
+	@test return_type(datetime2mjd) ≡ Float64
+	@test return_type(mjd2datetime) ≡ DateTime
 
 	using Dates: Date, Day, Millisecond, Second, UTC, datetime2julian, now, today
-	@test 0000000.0 === datetime2julian(Exts.DatesExt.EPOCH_JUL)
-	@test 2400000.0 === datetime2julian(Exts.DatesExt.EPOCH_RJD)
-	@test 2400000.5 === datetime2julian(Exts.DatesExt.EPOCH_MJD)
-	@test 2415020.0 === datetime2julian(Exts.DatesExt.EPOCH_DJD)
-	@test 2440587.5 === datetime2julian(Exts.DatesExt.EPOCH_NIX)
-	@test 2451544.5 === datetime2julian(Exts.DatesExt.EPOCH_M2K)
-	@test 2451545.0 === datetime2julian(Exts.DatesExt.EPOCH_J2K)
+	@test 0000000.0 ≡ datetime2julian(EPOCH_JUL)
+	@test 2400000.0 ≡ datetime2julian(EPOCH_RJD)
+	@test 2400000.5 ≡ datetime2julian(EPOCH_MJD)
+	@test 2415020.0 ≡ datetime2julian(EPOCH_DJD)
+	@test 2440587.5 ≡ datetime2julian(EPOCH_NIX)
+	@test 2451544.5 ≡ datetime2julian(EPOCH_M2K)
+	@test 2451545.0 ≡ datetime2julian(EPOCH_J2K)
 	@test Date(1970) + Day(time() ÷ 86400) ≡ today(UTC)
 	@test Date(now(UTC)) ≡ today(UTC)
 	@test Second((1Day)) ≡ 86400Second ≡ Second(86400_000Millisecond)
@@ -513,7 +514,7 @@ end
 		FITS("spAll-gal-v5_4_45.fits") do f
 		#! format: noindent
 		@test 2 == length(f)
-		@test f[1] isa ImageHDU{UInt8, 0}
+		@test f[1] isa ImageHDU{Byte, 0}
 		@test f[2] isa TableHDU
 		err = @catch read(f[1])
 		@test () === size(f[1])
@@ -535,9 +536,9 @@ end
 
 @testset "PkgExt" begin
 	using Pkg: Pkg
-	@test Pkg ≡ Exts.PkgExt.Pkg ≡ Base.require(Module(), :Pkg)
+	@test Pkg ≡ Exts.@using(Pkg).Pkg ≡ Base.require(Module(), :Pkg)
 	load_path = copy(LOAD_PATH)
-	Exts.with_temp_env() do
+	with_temp_env() do
 		@test isnothing(Base.active_project())
 		@test LOAD_PATH == ["@", "@stdlib"]
 	end
