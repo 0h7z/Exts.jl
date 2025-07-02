@@ -50,7 +50,7 @@ jobs:
           version: ${{ matrix.julia-version }}
       - uses: julia-actions/julia-buildpkg@v1
         with:
-          precompile: "no"
+          precompile: "yes"
           ignore-no-cache: true
           localregistry: https://github.com/0h7z/0hjl.git
       - uses: actions/cache@v4
@@ -65,7 +65,7 @@ jobs:
         if: ${{ steps.cache.outputs.cache-hit }}
       - uses: julia-actions/julia-runtest@v1
         with:
-          compiled_modules: "no"
+          compiled_modules: "yes"
       - uses: heptazhou/julia-codecov@v1
         with:
           dirs: src:ext
