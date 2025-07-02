@@ -63,6 +63,8 @@ jobs:
           zstd -T0 -d spAll-gal-v5_4_45.fits.zst --output-dir-flat test
         if: ${{ steps.cache.outputs.cache-hit }}
       - uses: julia-actions/julia-runtest@v1
+        with:
+          compiled-modules: existing
       - uses: heptazhou/julia-codecov@v1
         with:
           dirs: src:ext

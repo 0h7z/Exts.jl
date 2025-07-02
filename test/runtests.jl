@@ -362,7 +362,9 @@ end
 	@test ErrorException("") == @eval VoidModule() $Exts.@trycatch $error()
 	@test isnothing(@eval VoidModule() $Exts.@catch $true)
 	@test isnothing(@eval VoidModule() $Exts.@try $error())
-	@test Symbol(:(:)) === @eval VoidModule() $Exts.S":"
+	@test Symbol(:(:)) === @eval VoidModule() $Exts.@S_str ":" # :(
+	# https://github.com/JuliaLang/julia/issues/36566
+	# v1.9 LoadError: syntax: cannot juxtapose string literal
 
 	@static if VERSION < v"1.10"
 		@test freeze(Dict()) isa LittleDict{Bottom, Bottom}
