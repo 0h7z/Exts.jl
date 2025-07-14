@@ -27,7 +27,7 @@ const VoidModule() = Module(gensym(), false, false)
 
 @testset "Pkg" begin
 	using Pkg: PlatformEngines, Registry, Types, is_manifest_current
-	@test getfield.(Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
+	@test getproperty.(Registry.reachable_registries(), :name) ⊇ ["General", "0hjl"]
 	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z()))
 	@test any(startswith("7-Zip "), readlines(PlatformEngines.exe7z().exec[1:1] |> Cmd))
 	# https://github.com/ip7z/7zip/blob/main/CPP/7zip/UI/Console/Main.cpp
